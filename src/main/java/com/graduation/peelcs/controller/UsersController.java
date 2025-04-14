@@ -1,0 +1,174 @@
+package com.graduation.peelcs.controller;
+
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.StpUtil;
+import com.graduation.peelcs.commen.Result;
+import com.graduation.peelcs.domain.dto.UserDTO;
+import com.graduation.peelcs.domain.po.Users;
+import com.graduation.peelcs.domain.vo.UserVO;
+import com.graduation.peelcs.service.IUsersService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * <p>
+ * 用户信息表 前端控制器
+ * </p>
+ *
+ * @author feng
+ * @since 2025-04-06
+ */
+@Slf4j
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+public class UsersController {
+
+    private final IUsersService usersService;
+    
+    /**
+     * 检查用户名或邮箱是否已存在
+     * @param nickname 用户名
+     * @param email 邮箱
+     * @return 是否存在
+     */
+    @GetMapping("/check-exists")
+    public Result<Boolean> checkUserExists(
+            @RequestParam(required = false) String nickname,
+            @RequestParam(required = false) String email) {
+        boolean exists = usersService.checkUserExists(nickname, email);
+        return Result.success(exists);
+    }
+    
+    /**
+     * 发送邮箱验证码
+     * @param email 邮箱
+     * @return 结果
+     */
+    @PostMapping("/send-code")
+    public Result<Void> sendVerificationCode(@RequestParam String email) {
+        try {
+            usersService.sendVerificationCode(email);
+            return Result.success();
+        } catch (Exception e) {
+            log.error("发送验证码失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 用户注册
+     * @param userDTO 注册请求
+     * @return 结果
+     */
+    @PostMapping("/register")
+    public Result<UserVO> register(@RequestBody @Validated UserDTO userDTO) {
+        try {
+            Users user = usersService.register(
+                userDTO.getEmail(),
+                userDTO.getPassword(),
+                userDTO.getNickname(),
+                userDTO.getCode()
+            );
+            
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            
+            return Result.success("注册成功", userVO);
+        } catch (Exception e) {
+            log.error("注册失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 用户登录
+     * @param account 账号（邮箱或用户名）
+     * @param password 密码
+     * @return 结果
+     */
+    @PostMapping("/login")
+    public Result<UserVO> login(
+            @RequestParam String account,
+            @RequestParam String password) {
+        try {
+            Users user = usersService.login(account, password);
+            
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            userVO.setToken(StpUtil.getTokenValue());
+            
+            return Result.success("登录成功", userVO);
+        } catch (Exception e) {
+            log.error("登录失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取当前用户信息
+     * @return 结果
+     */
+    @GetMapping("/info")
+    @SaCheckLogin
+    public Result<UserVO> getUserInfo() {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            Users user = usersService.getUserById(userId);
+            if (user != null) {
+                UserVO userVO = new UserVO();
+                BeanUtils.copyProperties(user, userVO);
+                return Result.success(userVO);
+            } else {
+                return Result.error("用户不存在");
+            }
+        } catch (Exception e) {
+            log.error("获取用户信息失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 修改密码
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     * @return 结果
+     */
+    @PostMapping("/update-password")
+    @SaCheckLogin
+    public Result<Void> updatePassword(
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            boolean success = usersService.updatePassword(userId, oldPassword, newPassword);
+            if (success) {
+                return Result.success();
+            } else {
+                return Result.error("密码修改失败");
+            }
+        } catch (Exception e) {
+            log.error("修改密码失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 退出登录
+     * @return 结果
+     */
+    @PostMapping("/logout")
+    @SaCheckLogin
+    public Result<Void> logout() {
+        try {
+            StpUtil.logout();
+            return Result.success();
+        } catch (Exception e) {
+            log.error("退出登录失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+}
