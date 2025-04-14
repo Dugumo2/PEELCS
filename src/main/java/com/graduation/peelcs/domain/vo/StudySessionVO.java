@@ -1,100 +1,85 @@
-package com.graduation.peelcs.domain.po;
+package com.graduation.peelcs.domain.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
- * <p>
- * 学习记录表
- * </p>
- *
- * @author feng
- * @since 2025-04-06
+ * 学习记录VO
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("study_sessions")
-public class StudySessions implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
+public class StudySessionVO {
+    
     /**
      * 学习记录ID
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
-
+    
     /**
      * 用户ID
      */
     private Long userId;
-
+    
     /**
      * 任务ID
      */
     private Long taskId;
-
+    
     /**
      * 科目
      */
     private String subject;
-
-    /**
-     * 任务名称
-     */
-    private String taskName;
-
+    
     /**
      * 开始时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
-
+    
     /**
      * 结束时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
-
+    
     /**
-     * 计划持续时间(分钟)
+     * 持续时间(分钟)
      */
-    private Integer plannedDurationMinutes;
-
+    private Integer durationMinutes;
+    
     /**
      * 会话类型:work/break
      */
     private String sessionType;
-
+    
     /**
      * 状态:running/paused/completed
      */
     private String state;
-
+    
     /**
      * 暂停时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime pauseTime;
-
+    
     /**
      * 实际工作时间(分钟)
      */
     private Integer actualWorkTime;
-
+    
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-
+    
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-
-
-}
+} 
