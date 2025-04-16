@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://1.95.79.29:3306/hospital?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    url: jdbc:mysql://1.95.169.127:3306/pomodoro_study_forum?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
     username: root
     password: 279110233
   servlet:
@@ -26,7 +26,7 @@ spring:
       "mail.smtp.socketFactory.port": 465   # SSL端口
   data:
     redis:
-      host: 1.95.79.29
+      host: 1.95.169.127
       port: 6379
       password: 123321
       database: 0
