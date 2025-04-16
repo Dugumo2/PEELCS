@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author feng
- * @since 2025-04-06
+ * @since 2025-04-16
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -42,9 +42,19 @@ public class PostComments implements Serializable {
     private Long userId;
 
     /**
-     * 父评论ID(NULL表示一级评论)
+     * 顶级评论ID(NULL表示该评论本身为顶级评论)
      */
-    private Long parentCommentId;
+    private Long rootCommentId;
+
+    /**
+     * 目标评论ID(NULL表示该评论本身为顶级评论)
+     */
+    private Long toCommentId;
+
+    /**
+     * 回复目标用户昵称
+     */
+    private String toUserNickname;
 
     /**
      * 评论内容

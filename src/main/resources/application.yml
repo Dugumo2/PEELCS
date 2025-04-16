@@ -17,7 +17,7 @@ spring:
     port: 465
     default-encoding: UTF-8
     protocol: smtps
-    nickname: 医疗系统邮件
+    nickname: 考研学习管理系统邮件
     properties:
       "mail.smtp.auth": true                # ?????????
       "mail.smtp.starttls.enable": true     # ???????????
@@ -28,7 +28,7 @@ spring:
     redis:
       host: 1.95.169.127
       port: 6379
-      password: 123321
+      password: fengyang1314
       database: 0
       lettuce:
         pool:
