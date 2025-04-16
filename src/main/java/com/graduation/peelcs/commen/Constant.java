@@ -19,6 +19,16 @@ public class Constant {
          * 番茄钟计时信息前缀
          */
         public static final String POMODORO_TIMER = "pomodoro:timer:";
+        
+        /**
+         * 用户每日发帖积分记录键前缀
+         */
+        public static final String POST_POINTS_KEY_PREFIX = "forum:post:points:";
+        
+        /**
+         * 用户每日评论积分记录键前缀
+         */
+        public static final String COMMENT_POINTS_KEY_PREFIX = "forum:comment:points:";
     }
     
     /**
@@ -79,5 +89,25 @@ public class Constant {
          * 长休息间隔（完成几个番茄后休息较长时间）
          */
         public static final int LONG_BREAK_INTERVAL = 4;
+    }
+    
+    /**
+     * 积分设置
+     */
+    public static class PointsSettings {
+        /**
+         * 发帖获得的积分
+         */
+        public static final int POST_POINTS = 10;
+        
+        /**
+         * 评论获得的积分
+         */
+        public static final int COMMENT_POINTS = 5;
+        
+        /**
+         * 每日获得积分的上限次数
+         */
+        public static final int DAILY_POINTS_LIMIT = 3;
     }
 }

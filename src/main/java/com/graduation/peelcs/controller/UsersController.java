@@ -48,7 +48,7 @@ public class UsersController {
      * @param email 邮箱
      * @return 结果
      */
-    @PostMapping("/send-code")
+    @GetMapping("/send-code")
     public Result<Void> sendVerificationCode(@RequestParam String email) {
         try {
             usersService.sendVerificationCode(email);
