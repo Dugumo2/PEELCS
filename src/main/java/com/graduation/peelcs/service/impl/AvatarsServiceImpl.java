@@ -10,7 +10,6 @@ import com.graduation.peelcs.domain.vo.AvatarVO;
 import com.graduation.peelcs.mapper.AvatarsMapper;
 import com.graduation.peelcs.service.IAvatarsService;
 import com.graduation.peelcs.service.IUserAvatarUnlocksService;
-import com.graduation.peelcs.service.IUsersService;
 import com.graduation.peelcs.utils.oss.AliyunOSSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -139,11 +138,7 @@ public class AvatarsServiceImpl extends ServiceImpl<AvatarsMapper, Avatars> impl
     }
 
     @Override
-    public List<AvatarVO> getAvatarsWithUnlockStatus(Long userId, Integer userPoints) {
-        if (userPoints == null) {
-            userPoints = 0;
-        }
-        
+    public List<AvatarVO> getAvatarsWithUnlockStatus(Long userId) {
         // 获取所有头像
         List<Avatars> allAvatars = getAllAvatars();
         
@@ -163,7 +158,6 @@ public class AvatarsServiceImpl extends ServiceImpl<AvatarsMapper, Avatars> impl
         }
         
         // 为了避免lambda表达式中的变量需要是final的问题，这里使用final变量
-        final Integer finalUserPoints = userPoints;
         final Long finalCurrentAvatarId = currentAvatarId;
         
         // 转换为VO对象，并设置解锁状态
@@ -175,10 +169,9 @@ public class AvatarsServiceImpl extends ServiceImpl<AvatarsMapper, Avatars> impl
                 .setPointsRequired(avatar.getPointsRequired())
                 .setIsDefault(avatar.getIsDefault());
             
-            // 标记解锁状态: 已解锁的或者积分足够且为默认的
+            // 只标记已解锁的头像
             boolean unlocked = unlockedAvatarIds.contains(avatar.getId()) || 
-                              avatar.getIsDefault() || 
-                              finalUserPoints >= avatar.getPointsRequired();
+                              avatar.getIsDefault(); // 默认头像也算作已解锁
             
             // 设置是否解锁
             avatarVO.setIsUnlocked(unlocked);

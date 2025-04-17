@@ -6,6 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.po.Avatars;
 import com.graduation.peelcs.domain.po.Users;
+import com.graduation.peelcs.domain.vo.AvatarVO;
 import com.graduation.peelcs.service.IAvatarsService;
 import com.graduation.peelcs.service.IUsersService;
 import com.graduation.peelcs.service.IUserAvatarUnlocksService;
@@ -60,11 +61,12 @@ public class AvatarsController {
     }
     
     /**
-     * 获取所有头像列表
+     * 获取所有头像列表（管理员接口）
      * 
      * @return 头像列表
      */
     @GetMapping("/list")
+    @SaCheckRole("admin")
     public Result<List<Avatars>> getAllAvatars() {
         try {
             List<Avatars> avatars = avatarsService.getAllAvatars();
@@ -76,29 +78,22 @@ public class AvatarsController {
     }
     
     /**
-     * 获取当前用户可用的头像列表
+     * 获取用户可用的头像列表（包含解锁状态）
      * 
-     * @return 可用头像列表
+     * @return 可用头像列表（包含解锁状态）
      */
-    @GetMapping("/available")
-    @SaCheckLogin
-    public Result<List<Avatars>> getAvailableAvatars() {
+    @GetMapping("/user-avatars")
+    public Result<List<AvatarVO>> getUserAvatars() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
-            Users user = usersService.getUserById(userId);
             
-            if (user == null) {
-                return Result.error("用户不存在");
-            }
-            
-            List<Avatars> avatars = avatarsService.getAvailableAvatars(user.getPoints());
+            List<AvatarVO> avatars = avatarsService.getAvatarsWithUnlockStatus(userId);
             return Result.success(avatars);
         } catch (Exception e) {
-            log.error("获取可用头像列表失败: {}", e.getMessage(), e);
+            log.error("获取用户头像列表失败: {}", e.getMessage(), e);
             return Result.error(e.getMessage());
         }
     }
-    
     
     /**
      * 删除头像（管理员接口）
@@ -129,7 +124,6 @@ public class AvatarsController {
      * @return 兑换结果
      */
     @PostMapping("/exchange/{avatarId}")
-    @SaCheckLogin
     public Result<Users> exchangeAvatar(@PathVariable Long avatarId) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();

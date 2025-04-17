@@ -94,7 +94,6 @@ public class CalendarEventsController {
      * @return 添加结果
      */
     @PostMapping("/schedule")
-    @SaCheckLogin
     public Result<CalendarEventVO> addSchedule(@RequestBody @Validated CalendarEventDTO eventDTO) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -150,7 +149,6 @@ public class CalendarEventsController {
      * @return 更新结果
      */
     @PutMapping("/{id}")
-    @SaCheckLogin
     public Result<CalendarEventVO> updateEvent(@PathVariable Long id, @RequestBody @Validated CalendarEventDTO eventDTO) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -207,7 +205,6 @@ public class CalendarEventsController {
      * @return 删除结果
      */
     @DeleteMapping("/{id}")
-    @SaCheckLogin
     public Result<Void> deleteEvent(@PathVariable Long id) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -234,7 +231,6 @@ public class CalendarEventsController {
      * @return 事件详情
      */
     @GetMapping("/{id}")
-    @SaCheckLogin
     public Result<CalendarEventVO> getEventDetail(@PathVariable Long id) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -259,7 +255,6 @@ public class CalendarEventsController {
      * @return 事件列表
      */
     @GetMapping("/list")
-    @SaCheckLogin
     public Result<List<CalendarEventVO>> getEvents(
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
@@ -280,7 +275,6 @@ public class CalendarEventsController {
      * @return 课程列表
      */
     @GetMapping("/classes")
-    @SaCheckLogin
     public Result<List<CalendarEventVO>> getClasses() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -299,7 +293,6 @@ public class CalendarEventsController {
      * @return 日程列表
      */
     @GetMapping("/schedules")
-    @SaCheckLogin
     public Result<List<CalendarEventVO>> getSchedules() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();

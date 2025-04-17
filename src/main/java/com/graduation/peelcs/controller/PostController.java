@@ -1,5 +1,6 @@
 package com.graduation.peelcs.controller;
 
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.dto.CommentDTO;
@@ -54,6 +55,7 @@ public class PostController {
      * 发布官方帖子（需要管理员权限）
      */
     @PostMapping("/official")
+    @SaCheckRole("admin")
     public Result<ForumPosts> createOfficialPost(@RequestBody PostDTO postDTO) {
         Long userId = StpUtil.getLoginIdAsLong();
         ForumPosts post = forumPostsService.createOfficialPost(
@@ -67,6 +69,7 @@ public class PostController {
      * 审核帖子（需要管理员权限）
      */
     @PutMapping("/review/{id}")
+    @SaCheckRole("admin")
     public Result<ForumPosts> reviewPost(
             @PathVariable Long id,
             @RequestParam String status) {
@@ -102,6 +105,7 @@ public class PostController {
      * 获取待审核的帖子列表（管理员接口）
      */
     @GetMapping("/pending")
+    @SaCheckRole("admin")
     public Result<List<PostVO>> getPendingPosts(PostQuery query) {
         Long userId = StpUtil.getLoginIdAsLong();
         query.setStatus("pending");

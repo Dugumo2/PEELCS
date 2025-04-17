@@ -119,7 +119,6 @@ public class UsersController {
      * @return 结果
      */
     @GetMapping("/info")
-    @SaCheckLogin
     public Result<UserVO> getUserInfo() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -144,7 +143,6 @@ public class UsersController {
      * @return 结果
      */
     @PostMapping("/update-password")
-    @SaCheckLogin
     public Result<Void> updatePassword(
             @RequestParam String oldPassword,
             @RequestParam String newPassword) {
@@ -167,7 +165,6 @@ public class UsersController {
      * @return 结果
      */
     @PostMapping("/logout")
-    @SaCheckLogin
     public Result<Void> logout() {
         try {
             StpUtil.logout();
@@ -183,7 +180,6 @@ public class UsersController {
      * @return 签到结果
      */
     @PostMapping("/checkin")
-    @SaCheckLogin
     public Result<Map<String, Object>> checkIn() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -217,7 +213,6 @@ public class UsersController {
      * @return 是否已签到
      */
     @GetMapping("/check-today-checkin")
-    @SaCheckLogin
     public Result<Boolean> checkTodayCheckin() {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
@@ -235,7 +230,6 @@ public class UsersController {
      * @return 更新后的用户信息
      */
     @PostMapping("/change-avatar/{avatarId}")
-    @SaCheckLogin
     public Result<UserVO> changeAvatar(@PathVariable Long avatarId) {
         try {
             Long userId = StpUtil.getLoginIdAsLong();

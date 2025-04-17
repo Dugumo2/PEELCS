@@ -46,11 +46,10 @@ public interface IAvatarsService extends IService<Avatars> {
     /**
      * 获取用户可用的头像（包含解锁状态）
      *
-     * @param userId     用户ID
-     * @param userPoints 用户积分
+     * @param userId 用户ID
      * @return 可用头像列表（包含解锁状态）
      */
-    List<AvatarVO> getAvatarsWithUnlockStatus(Long userId, Integer userPoints);
+    List<AvatarVO> getAvatarsWithUnlockStatus(Long userId);
     
     /**
      * 根据ID获取头像信息
