@@ -60,4 +60,12 @@ public interface IUsersService extends IService<Users> {
      * @return 用户对象
      */
     Users getUserById(Long userId);
+    
+    /**
+     * 用户兑换头像
+     * @param userId 用户ID
+     * @param avatarId 头像ID
+     * @return 更新后的用户对象
+     */
+    Users exchangeAvatar(Long userId, Long avatarId);
 }

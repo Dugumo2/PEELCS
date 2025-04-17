@@ -4,14 +4,19 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.dto.UserDTO;
+import com.graduation.peelcs.domain.po.UserCheckins;
 import com.graduation.peelcs.domain.po.Users;
 import com.graduation.peelcs.domain.vo.UserVO;
+import com.graduation.peelcs.service.IUserCheckinsService;
 import com.graduation.peelcs.service.IUsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
 
     private final IUsersService usersService;
+    private final IUserCheckinsService userCheckinsService;
     
     /**
      * 检查用户名或邮箱是否已存在
@@ -168,6 +174,82 @@ public class UsersController {
             return Result.success();
         } catch (Exception e) {
             log.error("退出登录失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 用户签到
+     * @return 签到结果
+     */
+    @PostMapping("/checkin")
+    @SaCheckLogin
+    public Result<Map<String, Object>> checkIn() {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            
+            // 检查今日是否已签到
+            if (userCheckinsService.hasCheckedInToday(userId)) {
+                return Result.error("今日已签到，无需重复签到");
+            }
+            
+            // 执行签到
+            UserCheckins checkin = userCheckinsService.checkIn(userId);
+            
+            // 获取最新的用户信息（包含更新后的积分）
+            Users user = usersService.getUserById(userId);
+            
+            // 组装返回结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("points", checkin.getPointsEarned());
+            result.put("totalPoints", user.getPoints());
+            result.put("checkInDate", checkin.getCheckInDate());
+            
+            return Result.success("签到成功", result);
+        } catch (Exception e) {
+            log.error("签到失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 检查今日是否已签到
+     * @return 是否已签到
+     */
+    @GetMapping("/check-today-checkin")
+    @SaCheckLogin
+    public Result<Boolean> checkTodayCheckin() {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            boolean hasCheckedIn = userCheckinsService.hasCheckedInToday(userId);
+            return Result.success(hasCheckedIn);
+        } catch (Exception e) {
+            log.error("检查签到状态失败: {}", e.getMessage(), e);
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 更换头像
+     * @param avatarId 头像ID
+     * @return 更新后的用户信息
+     */
+    @PostMapping("/change-avatar/{avatarId}")
+    @SaCheckLogin
+    public Result<UserVO> changeAvatar(@PathVariable Long avatarId) {
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            
+            // 调用服务更换头像
+            Users updatedUser = usersService.exchangeAvatar(userId, avatarId);
+            
+            // 转换为VO对象
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(updatedUser, userVO);
+            
+            return Result.success("头像更换成功", userVO);
+        } catch (Exception e) {
+            log.error("更换头像失败: {}", e.getMessage(), e);
             return Result.error(e.getMessage());
         }
     }

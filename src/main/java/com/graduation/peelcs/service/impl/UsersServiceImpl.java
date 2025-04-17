@@ -192,4 +192,26 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         return this.getById(userId);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Users exchangeAvatar(Long userId, Long avatarId) {
+        if (userId == null || avatarId == null) {
+            throw new IllegalArgumentException("用户ID或头像ID不能为空");
+        }
+        
+        // 获取用户信息
+        Users user = this.getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        
+        // 更新用户头像
+        user.setAvatarId(avatarId);
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        // 保存更新
+        this.updateById(user);
+        
+        return user;
+    }
 }

@@ -106,6 +106,11 @@ public class Constant {
         public static final int COMMENT_POINTS = 5;
         
         /**
+         * 签到获得的积分
+         */
+        public static final int CHECKIN_POINTS = 3;
+        
+        /**
          * 每日获得积分的上限次数
          */
         public static final int DAILY_POINTS_LIMIT = 3;
