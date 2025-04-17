@@ -73,7 +73,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         comment.setToUserNickname(null); // 顶级评论
         comment.setContent(content);
         comment.setIsAnonymous(isAnonymous != null && isAnonymous);
-        comment.setStatus("approved"); // 评论默认已通过
         comment.setCreatedAt(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
         
@@ -94,14 +93,10 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         }
 
         
-        // 检查目标评论是否存在且已通过审核
+        // 检查目标评论是否存在
         PostComments targetComment = this.getById(commentId);
         if (targetComment == null) {
             throw new IllegalArgumentException("评论不存在");
-        }
-        
-        if (!"approved".equals(targetComment.getStatus())) {
-            throw new IllegalArgumentException("评论未通过审核");
         }
         
         // 查找目标评论的用户
@@ -129,7 +124,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         reply.setToUserNickname(targetNickname);
         reply.setContent(content);
         reply.setIsAnonymous(isAnonymous != null && isAnonymous);
-        reply.setStatus("approved"); // 评论默认已通过
         reply.setCreatedAt(LocalDateTime.now());
         reply.setUpdatedAt(LocalDateTime.now());
         
@@ -175,44 +169,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public PostComments reviewComment(Long userId, Long commentId, String status) {
-        // 参数验证
-        if (userId == null || commentId == null || !StringUtils.hasText(status)) {
-            throw new IllegalArgumentException("参数不完整");
-        }
-        
-        // 状态只能是approved或rejected
-        if (!"approved".equals(status) && !"rejected".equals(status)) {
-            throw new IllegalArgumentException("状态值无效");
-        }
-        
-        // 获取评论
-        PostComments comment = this.getById(commentId);
-        if (comment == null) {
-            throw new IllegalArgumentException("评论不存在");
-        }
-        
-        // 只有待审核的评论可以被审核
-        if (!"pending".equals(comment.getStatus())) {
-            throw new IllegalArgumentException("该评论已审核");
-        }
-        
-        // 更新评论状态
-        comment.setStatus(status);
-        comment.setUpdatedAt(LocalDateTime.now());
-        
-        this.updateById(comment);
-        
-        // 如果审核通过，给评论用户增加积分（有每日限制）
-        if ("approved".equals(status)) {
-            addCommentPoints(comment.getUserId());
-        }
-        
-        return comment;
-    }
-
-    @Override
     public List<CommentVO> getPostComments(Long postId, Integer page, Integer size) {
         // 参数验证
         if (postId == null) {
@@ -227,7 +183,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         LambdaQueryWrapper<PostComments> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PostComments::getPostId, postId)
                .isNull(PostComments::getRootCommentId) // 顶级评论
-               .eq(PostComments::getStatus, "approved") // 已通过审核
                .orderByDesc(PostComments::getCreatedAt);
         
         // 分页查询
@@ -264,7 +219,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         // 查询子评论
         LambdaQueryWrapper<PostComments> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PostComments::getRootCommentId, commentId) // 指定顶级评论的子评论
-               .eq(PostComments::getStatus, "approved") // 已通过审核
                .orderByAsc(PostComments::getCreatedAt); // 按时间正序排列
         
         // 分页查询
@@ -302,11 +256,6 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         // 根据用户ID查询
         if (query.getUserId() != null) {
             wrapper.eq(PostComments::getUserId, query.getUserId());
-        }
-        
-        // 根据状态查询
-        if (StringUtils.hasText(query.getStatus())) {
-            wrapper.eq(PostComments::getStatus, query.getStatus());
         }
         
         // 分页设置

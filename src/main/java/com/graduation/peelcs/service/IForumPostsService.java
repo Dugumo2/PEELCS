@@ -70,8 +70,10 @@ public interface IForumPostsService extends IService<ForumPosts> {
      * 获取帖子详情
      *
      * @param postId 帖子ID
+     * @param userId 当前用户ID
+     * @param isAdmin 是否为管理员
      * @return 帖子详情
      */
-    PostDetailVO getPostDetail(Long postId);
+    PostDetailVO getPostDetail(Long postId, Long userId, boolean isAdmin);
 
 }

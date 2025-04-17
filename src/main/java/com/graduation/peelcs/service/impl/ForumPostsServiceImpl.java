@@ -242,7 +242,7 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
     }
 
     @Override
-    public PostDetailVO getPostDetail(Long postId) {
+    public PostDetailVO getPostDetail(Long postId, Long userId, boolean isAdmin) {
         // 参数验证
         if (postId == null) {
             throw new IllegalArgumentException("参数不完整");
@@ -250,8 +250,17 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         
         // 获取帖子
         ForumPosts post = this.getById(postId);
-        if (post == null || !"approved".equals(post.getStatus())) {
-            return null; // 帖子不存在或未通过审核
+        if (post == null) {
+            return null; // 帖子不存在
+        }
+        
+        // 权限检查
+        // 1. 如果帖子已审核通过，任何人都可以查看
+        // 2. 如果帖子未审核通过，只有发布者自己或管理员可以查看
+        if (!"approved".equals(post.getStatus())) {
+            if (!isAdmin && (userId == null || !userId.equals(post.getUserId()))) {
+                return null; // 没有权限查看未审核的帖子
+            }
         }
         
         // 转换为详情VO
@@ -260,7 +269,6 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         // 获取顶级评论，使用CommentQuery
         CommentQuery commentQuery = new CommentQuery();
         commentQuery.setPostId(postId);
-        commentQuery.setStatus("approved");
         commentQuery.setPageNo(1L);
         commentQuery.setPageSize(20L);
         commentQuery.setSortBy("createdAt");
@@ -295,8 +303,7 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         
         // 查询评论数量
         LambdaQueryWrapper<PostComments> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(PostComments::getPostId, post.getId())
-               .eq(PostComments::getStatus, "approved");
+        wrapper.eq(PostComments::getPostId, post.getId());
         int commentCount = (int)postCommentsService.count(wrapper);
         
         vo.setCommentCount(commentCount);

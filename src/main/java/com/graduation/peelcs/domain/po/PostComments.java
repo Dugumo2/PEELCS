@@ -66,10 +66,6 @@ public class PostComments implements Serializable {
      */
     private Boolean isAnonymous;
 
-    /**
-     * 状态:pending/approved/rejected
-     */
-    private String status;
 
     /**
      * 创建时间

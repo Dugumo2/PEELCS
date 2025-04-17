@@ -49,16 +49,6 @@ public interface IPostCommentsService extends IService<PostComments> {
     boolean deleteComment(Long userId, Long commentId);
     
     /**
-     * 审核评论
-     *
-     * @param userId 用户ID（管理员）
-     * @param commentId 评论ID
-     * @param status 状态 (approved/rejected)
-     * @return 更新后的评论
-     */
-    PostComments reviewComment(Long userId, Long commentId, String status);
-    
-    /**
      * 获取帖子的评论列表（仅顶级评论）
      *
      * @param postId 帖子ID

@@ -25,9 +25,4 @@ public class CommentQuery extends PageQuery{
      * 用户ID
      */
     private Long userId;
-    
-    /**
-     * 评论状态
-     */
-    private String status;
 }
