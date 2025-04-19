@@ -102,7 +102,9 @@ public class PostController {
         // 安全检查：普通用户只能看到审核通过的帖子
         Long userId = StpUtil.getLoginIdAsLong();
         Users user = null;
+
             user = Db.lambdaQuery(Users.class).eq(Users::getId, userId).one();
+
         
         // 如果不是管理员，强制设置status为approved
         if (user == null || !"admin".equals(user.getRole())) {

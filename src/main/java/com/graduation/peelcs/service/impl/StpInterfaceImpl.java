@@ -33,9 +33,9 @@ public class StpInterfaceImpl implements StpInterface {
                 .eq(Users::getId, loginId)
                 .one()
                 .getRole();
-        if(role == PermissionStatus.USER.getValue()) {
+        if(PermissionStatus.USER.getValue().equals(role)) {
             roleList.add(PermissionStatus.USER.getValue());
-        }else if(role == PermissionStatus.ADMIN.getValue()) {
+        } else if(PermissionStatus.ADMIN.getValue().equals(role)) {
             roleList.add(PermissionStatus.ADMIN.getValue());
         }
         return roleList;

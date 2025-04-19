@@ -3,6 +3,7 @@ package com.graduation.peelcs.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.graduation.peelcs.commen.Result;
+import com.graduation.peelcs.domain.dto.LoginDTO;
 import com.graduation.peelcs.domain.dto.UserDTO;
 import com.graduation.peelcs.domain.po.UserCheckins;
 import com.graduation.peelcs.domain.po.Users;
@@ -92,16 +93,13 @@ public class UsersController {
     
     /**
      * 用户登录
-     * @param account 账号（邮箱或用户名）
-     * @param password 密码
+     * @param loginDTO 登录信息（包含账号和密码）
      * @return 结果
      */
     @PostMapping("/login")
-    public Result<UserVO> login(
-            @RequestParam String account,
-            @RequestParam String password) {
+    public Result<UserVO> login(@RequestBody LoginDTO loginDTO) {
         try {
-            Users user = usersService.login(account, password);
+            Users user = usersService.login(loginDTO.getAccount(), loginDTO.getPassword());
             
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
