@@ -98,7 +98,7 @@ public class PostController {
      * 获取帖子列表
      */
     @PostMapping("/list")
-    public Result<List<PostVO>> getPosts(PostQuery query) {
+    public Result<List<PostVO>> getPosts(@RequestBody PostQuery query) {
         // 安全检查：普通用户只能看到审核通过的帖子
         Long userId = StpUtil.getLoginIdAsLong();
         Users user = null;
@@ -121,10 +121,9 @@ public class PostController {
     /**
      * 获取待审核的帖子列表（管理员接口）
      */
-    @GetMapping("/pending")
+    @PostMapping("/pending")
     @SaCheckRole("admin")
-    public Result<List<PostVO>> getPendingPosts(PostQuery query) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<List<PostVO>> getPendingPosts(@RequestBody PostQuery query) {
         query.setStatus("pending");
         List<PostVO> posts = forumPostsService.getPosts(query);
         return Result.success(posts);
@@ -161,8 +160,8 @@ public class PostController {
     /**
      * 获取我的帖子
      */
-    @GetMapping("/my")
-    public Result<List<PostVO>> getMyPosts(PostQuery query) {
+    @PostMapping("/my")
+    public Result<List<PostVO>> getMyPosts(@RequestBody PostQuery query) {
         Long userId = StpUtil.getLoginIdAsLong();
         
         if (query == null) {
