@@ -291,6 +291,11 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         PostVO vo = new PostVO();
         BeanUtils.copyProperties(post, vo);
         
+        // 处理内容字段 - 如果超过200个字符则截断
+        if (StringUtils.hasText(vo.getContent()) && vo.getContent().length() > 200) {
+            vo.setContent(vo.getContent().substring(0, 200) + "...");
+        }
+        
         // 查询作者信息（非匿名）
         if (!post.getIsAnonymous()) {
             Users user = Db.lambdaQuery(Users.class).eq(Users::getId,post.getUserId()).one();

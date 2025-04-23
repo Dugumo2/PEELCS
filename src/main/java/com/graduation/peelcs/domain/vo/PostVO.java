@@ -31,6 +31,11 @@ public class PostVO {
     private String title;
     
     /**
+     * 内容
+     */
+    private String content;
+    
+    /**
      * 是否匿名
      */
     private Boolean isAnonymous;
