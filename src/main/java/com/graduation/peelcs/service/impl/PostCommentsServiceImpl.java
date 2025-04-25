@@ -349,7 +349,11 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
             if (user != null) {
                 user.setPoints(user.getPoints() + Constant.PointsSettings.COMMENT_POINTS);
                 user.setUpdatedAt(LocalDateTime.now());
-                Db.lambdaUpdate(Users.class).eq(Users::getId,userId).update();
+                Db.lambdaUpdate(Users.class)
+                   .eq(Users::getId, userId)
+                   .set(Users::getPoints, user.getPoints())
+                   .set(Users::getUpdatedAt, user.getUpdatedAt())
+                   .update();
                 
                 // 更新计数
                 redisService.setValue(pointsKey, count + 1, 24 * 60 * 60 * 1000L); // 设置24小时过期
