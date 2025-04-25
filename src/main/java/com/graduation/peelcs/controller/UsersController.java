@@ -38,7 +38,6 @@ public class UsersController {
 
     private final IUsersService usersService;
     private final IUserCheckinsService userCheckinsService;
-    private final IAvatarsService avatarsService;
     
     /**
      * 检查用户名或邮箱是否已存在
