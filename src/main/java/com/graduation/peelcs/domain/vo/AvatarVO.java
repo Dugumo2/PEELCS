@@ -38,9 +38,4 @@ public class AvatarVO {
      * 是否已解锁
      */
     private Boolean isUnlocked;
-    
-    /**
-     * 是否为当前使用的头像
-     */
-    private Boolean isCurrentAvatar;
 } 

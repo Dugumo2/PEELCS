@@ -31,6 +31,11 @@ public class UserVO {
     private Long avatarId;
     
     /**
+     * 头像URL
+     */
+    private String avatarUrl;
+    
+    /**
      * 用户角色
      */
     private String role;

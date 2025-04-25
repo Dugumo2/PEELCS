@@ -2,12 +2,15 @@ package com.graduation.peelcs.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.dto.LoginDTO;
 import com.graduation.peelcs.domain.dto.UserDTO;
+import com.graduation.peelcs.domain.po.Avatars;
 import com.graduation.peelcs.domain.po.UserCheckins;
 import com.graduation.peelcs.domain.po.Users;
 import com.graduation.peelcs.domain.vo.UserVO;
+import com.graduation.peelcs.service.IAvatarsService;
 import com.graduation.peelcs.service.IUserCheckinsService;
 import com.graduation.peelcs.service.IUsersService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,7 @@ public class UsersController {
 
     private final IUsersService usersService;
     private final IUserCheckinsService userCheckinsService;
+    private final IAvatarsService avatarsService;
     
     /**
      * 检查用户名或邮箱是否已存在
@@ -84,6 +88,14 @@ public class UsersController {
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
             
+            // 设置头像URL
+            if (user.getAvatarId() != null) {
+                Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId,user.getAvatarId()).one();
+                if (avatar != null) {
+                    userVO.setAvatarUrl(avatar.getImageUrl());
+                }
+            }
+            
             return Result.success("注册成功", userVO);
         } catch (Exception e) {
             log.error("注册失败: {}", e.getMessage(), e);
@@ -105,6 +117,14 @@ public class UsersController {
             BeanUtils.copyProperties(user, userVO);
             userVO.setToken(StpUtil.getTokenValue());
             
+            // 设置头像URL
+            if (user.getAvatarId() != null) {
+                Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId,user.getAvatarId()).one();
+                if (avatar != null) {
+                    userVO.setAvatarUrl(avatar.getImageUrl());
+                }
+            }
+            
             return Result.success("登录成功", userVO);
         } catch (Exception e) {
             log.error("登录失败: {}", e.getMessage(), e);
@@ -124,6 +144,15 @@ public class UsersController {
             if (user != null) {
                 UserVO userVO = new UserVO();
                 BeanUtils.copyProperties(user, userVO);
+                
+                // 设置头像URL
+                if (user.getAvatarId() != null) {
+                    Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId,user.getAvatarId()).one();
+                    if (avatar != null) {
+                        userVO.setAvatarUrl(avatar.getImageUrl());
+                    }
+                }
+                
                 return Result.success(userVO);
             } else {
                 return Result.error("用户不存在");
@@ -238,6 +267,14 @@ public class UsersController {
             // 转换为VO对象
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(updatedUser, userVO);
+            
+            // 设置头像URL
+            if (updatedUser.getAvatarId() != null) {
+                Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId,updatedUser.getAvatarId()).one();
+                if (avatar != null) {
+                    userVO.setAvatarUrl(avatar.getImageUrl());
+                }
+            }
             
             return Result.success("头像更换成功", userVO);
         } catch (Exception e) {

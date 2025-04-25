@@ -148,18 +148,6 @@ public class AvatarsServiceImpl extends ServiceImpl<AvatarsMapper, Avatars> impl
             .map(UserAvatarUnlocks::getAvatarId)
             .collect(Collectors.toSet());
         
-        // 获取用户当前使用的头像ID
-        Long currentAvatarId = null;
-        if (userId != null) {
-            Users user = Db.lambdaQuery(Users.class).eq(Users::getId,userId).one();
-            if (user != null) {
-                currentAvatarId = user.getAvatarId();
-            }
-        }
-        
-        // 为了避免lambda表达式中的变量需要是final的问题，这里使用final变量
-        final Long finalCurrentAvatarId = currentAvatarId;
-        
         // 转换为VO对象，并设置解锁状态
         return allAvatars.stream().map(avatar -> {
             AvatarVO avatarVO = new AvatarVO()
@@ -175,9 +163,6 @@ public class AvatarsServiceImpl extends ServiceImpl<AvatarsMapper, Avatars> impl
             
             // 设置是否解锁
             avatarVO.setIsUnlocked(unlocked);
-            
-            // 设置是否为当前使用的头像
-            avatarVO.setIsCurrentAvatar(finalCurrentAvatarId != null && finalCurrentAvatarId.equals(avatar.getId()));
             
             return avatarVO;
         }).collect(Collectors.toList());
