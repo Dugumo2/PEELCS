@@ -180,7 +180,7 @@ public class PostController {
     /**
      * 发表评论（顶级评论）
      */
-    @PostMapping("/{postId}/comments")
+    @PostMapping("create/{postId}/comments")
     public Result<PostComments> createComment(
             @PathVariable Long postId,
             @RequestBody CommentDTO commentDTO) {
