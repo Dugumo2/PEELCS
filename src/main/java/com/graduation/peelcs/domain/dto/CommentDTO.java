@@ -8,6 +8,10 @@ import lombok.Data;
 @Data
 public class CommentDTO {
 
+    /**
+     * 帖子ID（创建顶级评论时使用）
+     */
+    private Long postId;
 
     /**
      * 评论内容

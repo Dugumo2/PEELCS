@@ -365,9 +365,10 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
             // 增加用户积分
             Users user = Db.lambdaQuery(Users.class).eq(Users::getId,userId).one();
             if (user != null) {
-                user.setPoints(user.getPoints() + Constant.PointsSettings.POST_POINTS);
-                user.setUpdatedAt(LocalDateTime.now());
-                Db.lambdaUpdate(Users.class).eq(Users::getId,userId).update();
+                Db.lambdaUpdate(Users.class)
+                        .set(Users::getPoints, user.getPoints() + Constant.PointsSettings.POST_POINTS)
+                        .set(Users::getUpdatedAt, LocalDateTime.now())
+                        .eq(Users::getId,userId).update();
                 
                 // 更新计数
                 redisService.setValue(pointsKey, count + 1, 24 * 60 * 60 * 1000L); // 设置24小时过期

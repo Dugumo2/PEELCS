@@ -244,7 +244,7 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         if (query.getPostId() != null) {
             wrapper.eq(PostComments::getPostId, query.getPostId());
         }
-        
+
         // 根据根评论ID查询（子评论）
         if (query.getRootCommentId() != null) {
             wrapper.eq(PostComments::getRootCommentId, query.getRootCommentId());
@@ -252,16 +252,16 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
             // 如果没有指定根评论ID，则查询顶级评论
             wrapper.isNull(PostComments::getRootCommentId);
         }
-        
+
         // 根据用户ID查询
         if (query.getUserId() != null) {
             wrapper.eq(PostComments::getUserId, query.getUserId());
         }
-        
+
         // 分页设置
         Long pageNo = query.getPageNo() == null || query.getPageNo() < 1 ? 1L : query.getPageNo();
         Long pageSize = query.getPageSize() == null || query.getPageSize() < 1 ? 20L : query.getPageSize();
-        
+
         // 排序设置
         if (StringUtils.hasText(query.getSortBy())) {
             if ("createdAt".equals(query.getSortBy())) {
@@ -275,26 +275,27 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
             // 默认按创建时间降序
             wrapper.orderByDesc(PostComments::getCreatedAt);
         }
-        
+
         // 分页查询
         Page<PostComments> commentPage = new Page<>(pageNo, pageSize);
         IPage<PostComments> commentsPage = this.page(commentPage, wrapper);
-        
+
         // 转换为VO，并处理顶级评论的回复
         List<CommentVO> commentVOs = commentsPage.getRecords().stream()
                 .map(comment -> {
                     CommentVO vo = convertToCommentVO(comment);
-                    
-                    // 如果是顶级评论，查询其前3条回复（修改为3条）
+
+                    // 如果是顶级评论，查询其回复
                     if (comment.getRootCommentId() == null) {
+                        // 默认查询3条回复
                         List<CommentVO> replies = getCommentReplies(comment.getId(), 1, 3);
                         vo.setReplies(replies);
                     }
-                    
+
                     return vo;
                 })
                 .collect(Collectors.toList());
-        
+
         return commentVOs;
     }
     

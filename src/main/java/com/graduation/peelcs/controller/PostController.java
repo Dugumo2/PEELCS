@@ -180,14 +180,18 @@ public class PostController {
     /**
      * 发表评论（顶级评论）
      */
-    @PostMapping("create/{postId}/comments")
-    public Result<PostComments> createComment(
-            @PathVariable Long postId,
-            @RequestBody CommentDTO commentDTO) {
+    @PostMapping("create/comments")
+    public Result<PostComments> createComment(@RequestBody CommentDTO commentDTO) {
         Long userId = StpUtil.getLoginIdAsLong();
+        
+        // 检查帖子ID是否存在
+        if (commentDTO.getPostId() == null) {
+            return Result.error("缺少帖子ID");
+        }
+        
         PostComments comment = postCommentsService.createComment(
                 userId,
-                postId,
+                commentDTO.getPostId(),
                 commentDTO.getContent(),
                 commentDTO.getIsAnonymous());
         return Result.success(comment);
@@ -210,26 +214,32 @@ public class PostController {
     }
     
     /**
-     * 获取帖子的评论列表
+     * 获取帖子的评论列表（顶级评论）
      */
-    @PostMapping("/{postId}/comments")
-    public Result<List<CommentVO>> getPostComments(
-            @PathVariable Long postId,
-            @RequestBody CommentQuery query) {
-        query.setPostId(postId);
-        query.setRootCommentId(null); // 顶级评论
+    @PostMapping("/comments")
+    public Result<List<CommentVO>> getPostComments(@RequestBody CommentQuery query) {
+        // 确保只查询顶级评论
+        query.setRootCommentId(null);
+        
+        // 检查帖子ID是否存在
+        if (query.getPostId() == null) {
+            return Result.error("缺少帖子ID");
+        }
+        
         List<CommentVO> comments = postCommentsService.getComments(query);
         return Result.success(comments);
     }
     
     /**
-     * 获取评论的回复列表
+     * 获取顶级评论的回复列表（子评论）
      */
-    @PostMapping("/comments/{commentId}/replies")
-    public Result<List<CommentVO>> getCommentReplies(
-            @PathVariable Long commentId,
-            @RequestBody CommentQuery query) {
-        query.setRootCommentId(commentId);
+    @PostMapping("/comments/replies")
+    public Result<List<CommentVO>> getCommentReplies(@RequestBody CommentQuery query) {
+        // 检查根评论ID是否存在
+        if (query.getRootCommentId() == null) {
+            return Result.error("缺少根评论ID");
+        }
+        
         List<CommentVO> replies = postCommentsService.getComments(query);
         return Result.success(replies);
     }
