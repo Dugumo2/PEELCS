@@ -212,10 +212,10 @@ public class PostController {
     /**
      * 获取帖子的评论列表
      */
-    @GetMapping("/{postId}/comments")
+    @PostMapping("/{postId}/comments")
     public Result<List<CommentVO>> getPostComments(
             @PathVariable Long postId,
-            CommentQuery query) {
+            @RequestBody CommentQuery query) {
         query.setPostId(postId);
         query.setRootCommentId(null); // 顶级评论
         List<CommentVO> comments = postCommentsService.getComments(query);
@@ -225,10 +225,10 @@ public class PostController {
     /**
      * 获取评论的回复列表
      */
-    @GetMapping("/comments/{commentId}/replies")
+    @PostMapping("/comments/{commentId}/replies")
     public Result<List<CommentVO>> getCommentReplies(
             @PathVariable Long commentId,
-            CommentQuery query) {
+            @RequestBody CommentQuery query) {
         query.setRootCommentId(commentId);
         List<CommentVO> replies = postCommentsService.getComments(query);
         return Result.success(replies);
