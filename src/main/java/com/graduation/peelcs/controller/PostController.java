@@ -181,15 +181,15 @@ public class PostController {
      * 发表评论（顶级评论）
      */
     @PostMapping("create/comments")
-    public Result<PostComments> createComment(@RequestBody CommentDTO commentDTO) {
+    public Result<CommentVO> createComment(@RequestBody CommentDTO commentDTO) {
         Long userId = StpUtil.getLoginIdAsLong();
         
         // 检查帖子ID是否存在
         if (commentDTO.getPostId() == null) {
             return Result.error("缺少帖子ID");
         }
-        
-        PostComments comment = postCommentsService.createComment(
+
+        CommentVO comment = postCommentsService.createComment(
                 userId,
                 commentDTO.getPostId(),
                 commentDTO.getContent(),

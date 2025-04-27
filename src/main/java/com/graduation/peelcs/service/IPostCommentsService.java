@@ -26,7 +26,7 @@ public interface IPostCommentsService extends IService<PostComments> {
      * @param isAnonymous 是否匿名
      * @return 创建的评论
      */
-    PostComments createComment(Long userId, Long postId, String content, Boolean isAnonymous);
+    CommentVO createComment(Long userId, Long postId, String content, Boolean isAnonymous);
     
     /**
      * 回复评论（子评论）

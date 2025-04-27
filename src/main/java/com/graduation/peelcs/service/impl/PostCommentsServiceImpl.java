@@ -3,6 +3,7 @@ package com.graduation.peelcs.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.graduation.peelcs.commen.Constant;
 import com.graduation.peelcs.domain.po.ForumPosts;
@@ -10,11 +11,8 @@ import com.graduation.peelcs.domain.po.PostComments;
 import com.graduation.peelcs.domain.po.Users;
 import com.graduation.peelcs.domain.query.CommentQuery;
 import com.graduation.peelcs.domain.vo.CommentVO;
-import com.graduation.peelcs.mapper.ForumPostsMapper;
 import com.graduation.peelcs.mapper.PostCommentsMapper;
-import com.graduation.peelcs.mapper.UsersMapper;
 import com.graduation.peelcs.service.IPostCommentsService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.graduation.peelcs.utils.redis.IRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +45,7 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PostComments createComment(Long userId, Long postId, String content, Boolean isAnonymous) {
+    public CommentVO createComment(Long userId, Long postId, String content, Boolean isAnonymous) {
         // 参数验证
         if (userId == null || postId == null || !StringUtils.hasText(content)) {
             throw new IllegalArgumentException("参数不完整");
@@ -77,11 +75,16 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         comment.setUpdatedAt(LocalDateTime.now());
         
         this.save(comment);
+
+        CommentVO vo = new CommentVO();
+        BeanUtils.copyProperties(comment,vo);
+        String nickname = Db.lambdaQuery(Users.class).eq(Users::getId, userId).one().getNickname();
+        vo.setNickname(nickname);
         
         // 增加用户积分（有每日限制）
         addCommentPoints(userId);
         
-        return comment;
+        return vo;
     }
 
     @Override
