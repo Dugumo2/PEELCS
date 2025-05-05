@@ -1,5 +1,7 @@
 package com.graduation.peelcs.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.StpUtil;
 import com.graduation.peelcs.domain.dto.StudySessionDTO;
 import com.graduation.peelcs.domain.dto.StudyTaskDTO;
 import com.graduation.peelcs.domain.po.StudyTasks;
@@ -27,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/study")
 @RequiredArgsConstructor
+@SaCheckLogin
 public class StudyController {
 
     private final IStudyTasksService studyTasksService;
@@ -36,7 +39,8 @@ public class StudyController {
      * 创建学习任务
      */
     @PostMapping("/tasks")
-    public ResponseEntity<StudyTasks> createTask(@RequestAttribute("userId") Long userId, @RequestBody StudyTaskDTO taskDTO) {
+    public ResponseEntity<StudyTasks> createTask(@RequestBody StudyTaskDTO taskDTO) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudyTasks task = studyTasksService.createTask(userId, taskDTO.getSubject(), taskDTO.getName(), taskDTO.getDurationMinutes());
         return ResponseEntity.ok(task);
     }
@@ -46,9 +50,9 @@ public class StudyController {
      */
     @PutMapping("/tasks/{id}")
     public ResponseEntity<StudyTasks> updateTask(
-            @RequestAttribute("userId") Long userId,
             @PathVariable Long id,
             @RequestBody StudyTaskDTO taskDTO) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudyTasks task = studyTasksService.updateTask(id, userId, taskDTO.getSubject(), taskDTO.getName(), taskDTO.getDurationMinutes());
         return ResponseEntity.ok(task);
     }
@@ -57,7 +61,8 @@ public class StudyController {
      * 删除学习任务
      */
     @DeleteMapping("/tasks/{id}")
-    public ResponseEntity<String> deleteTask(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+    public ResponseEntity<String> deleteTask(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         boolean result = studyTasksService.deleteTask(id, userId);
         if (result) {
             return ResponseEntity.ok("删除成功");
@@ -70,7 +75,8 @@ public class StudyController {
      * 获取任务列表
      */
     @GetMapping("/tasks")
-    public ResponseEntity<List<StudyTaskVO>> getTasks(@RequestAttribute("userId") Long userId) {
+    public ResponseEntity<List<StudyTaskVO>> getTasks() {
+        Long userId = StpUtil.getLoginIdAsLong();
         List<StudyTaskVO> tasks = studyTasksService.getUserTasks(userId);
         return ResponseEntity.ok(tasks);
     }
@@ -79,7 +85,8 @@ public class StudyController {
      * 获取任务详情
      */
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<StudyTaskVO> getTaskDetail(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+    public ResponseEntity<StudyTaskVO> getTaskDetail(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudyTaskVO task = studyTasksService.getTaskDetail(id, userId);
         if (task != null) {
             return ResponseEntity.ok(task);
@@ -92,7 +99,8 @@ public class StudyController {
      * 获取学习统计信息
      */
     @GetMapping("/stats")
-    public ResponseEntity<StudyStatsVO> getStudyStats(@RequestAttribute("userId") Long userId) {
+    public ResponseEntity<StudyStatsVO> getStudyStats() {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudyStatsVO stats = studyTasksService.getUserStudyStats(userId);
         return ResponseEntity.ok(stats);
     }
@@ -101,9 +109,8 @@ public class StudyController {
      * 开始番茄钟
      */
     @PostMapping("/sessions/start")
-    public ResponseEntity<StudySessionVO> startPomodoro(
-            @RequestAttribute("userId") Long userId,
-            @RequestBody StudySessionDTO sessionDTO) {
+    public ResponseEntity<StudySessionVO> startPomodoro(@RequestBody StudySessionDTO sessionDTO) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.startPomodoro(
                 userId, 
                 sessionDTO.getTaskId(), 
@@ -116,9 +123,8 @@ public class StudyController {
      * 暂停番茄钟
      */
     @PostMapping("/sessions/{id}/pause")
-    public ResponseEntity<StudySessionVO> pausePomodoro(
-            @RequestAttribute("userId") Long userId,
-            @PathVariable Long id) {
+    public ResponseEntity<StudySessionVO> pausePomodoro(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.pausePomodoro(id, userId);
         return ResponseEntity.ok(session);
     }
@@ -127,9 +133,8 @@ public class StudyController {
      * 继续番茄钟
      */
     @PostMapping("/sessions/{id}/resume")
-    public ResponseEntity<StudySessionVO> resumePomodoro(
-            @RequestAttribute("userId") Long userId,
-            @PathVariable Long id) {
+    public ResponseEntity<StudySessionVO> resumePomodoro(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.resumePomodoro(id, userId);
         return ResponseEntity.ok(session);
     }
@@ -138,9 +143,8 @@ public class StudyController {
      * 完成番茄钟
      */
     @PostMapping("/sessions/{id}/complete")
-    public ResponseEntity<StudySessionVO> completePomodoro(
-            @RequestAttribute("userId") Long userId,
-            @PathVariable Long id) {
+    public ResponseEntity<StudySessionVO> completePomodoro(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.completePomodoro(id, userId);
         return ResponseEntity.ok(session);
     }
@@ -149,7 +153,8 @@ public class StudyController {
      * 获取当前进行中的番茄钟
      */
     @GetMapping("/sessions/current")
-    public ResponseEntity<StudySessionVO> getCurrentSession(@RequestAttribute("userId") Long userId) {
+    public ResponseEntity<StudySessionVO> getCurrentSession() {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.getCurrentSession(userId);
         if (session != null) {
             return ResponseEntity.ok(session);
@@ -162,9 +167,8 @@ public class StudyController {
      * 获取用户的学习记录列表
      */
     @GetMapping("/sessions")
-    public ResponseEntity<List<StudySessionVO>> getUserSessions(
-            @RequestAttribute("userId") Long userId,
-            @RequestParam(required = false) Long taskId) {
+    public ResponseEntity<List<StudySessionVO>> getUserSessions(@RequestParam(required = false) Long taskId) {
+        Long userId = StpUtil.getLoginIdAsLong();
         List<StudySessionVO> sessions = studySessionsService.getUserSessions(userId, taskId);
         return ResponseEntity.ok(sessions);
     }
@@ -173,9 +177,8 @@ public class StudyController {
      * 获取任务的学习记录列表
      */
     @GetMapping("/tasks/{taskId}/sessions")
-    public ResponseEntity<List<StudySessionVO>> getTaskSessions(
-            @RequestAttribute("userId") Long userId,
-            @PathVariable Long taskId) {
+    public ResponseEntity<List<StudySessionVO>> getTaskSessions(@PathVariable Long taskId) {
+        Long userId = StpUtil.getLoginIdAsLong();
         List<StudySessionVO> sessions = studySessionsService.getTaskSessions(taskId, userId);
         return ResponseEntity.ok(sessions);
     }
@@ -184,9 +187,8 @@ public class StudyController {
      * 获取学习记录详情
      */
     @GetMapping("/sessions/{id}")
-    public ResponseEntity<StudySessionVO> getSessionDetail(
-            @RequestAttribute("userId") Long userId,
-            @PathVariable Long id) {
+    public ResponseEntity<StudySessionVO> getSessionDetail(@PathVariable Long id) {
+        Long userId = StpUtil.getLoginIdAsLong();
         StudySessionVO session = studySessionsService.getSessionDetail(id, userId);
         if (session != null) {
             return ResponseEntity.ok(session);
