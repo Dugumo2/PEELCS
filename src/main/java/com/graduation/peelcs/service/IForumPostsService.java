@@ -35,9 +35,10 @@ public interface IForumPostsService extends IService<ForumPosts> {
      * @param userId 用户ID（管理员）
      * @param title 标题
      * @param content 内容
+     * @param categoryId 分区类别ID（官方通知0，考研资讯1）
      * @return 创建的官方帖子
      */
-    ForumPosts createOfficialPost(Long userId, String title, String content);
+    ForumPosts createOfficialPost(Long userId, String title, String content, Long categoryId);
     
     /**
      * 审核帖子

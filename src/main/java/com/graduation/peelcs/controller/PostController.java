@@ -3,6 +3,7 @@ package com.graduation.peelcs.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.graduation.peelcs.commen.Constant;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.dto.CommentDTO;
 import com.graduation.peelcs.domain.dto.PostDTO;
@@ -60,10 +61,24 @@ public class PostController {
     @SaCheckRole("admin")
     public Result<ForumPosts> createOfficialPost(@RequestBody PostDTO postDTO) {
         Long userId = StpUtil.getLoginIdAsLong();
+        
+        // 如果未传递分区ID，默认为官方通知
+        Long categoryId = postDTO.getCategoryId();
+        if (categoryId == null) {
+            categoryId = Constant.ForumCategory.OFFICIAL_NOTICE;
+        }
+        
+        // 只允许管理员发布官方通知和考研资讯
+        if (!categoryId.equals(Constant.ForumCategory.OFFICIAL_NOTICE) && 
+            !categoryId.equals(Constant.ForumCategory.EXAM_INFO)) {
+            return Result.error("管理员只能发布官方通知和考研资讯");
+        }
+        
         ForumPosts post = forumPostsService.createOfficialPost(
                 userId,
                 postDTO.getTitle(),
-                postDTO.getContent());
+                postDTO.getContent(),
+                categoryId);
         return Result.success(post);
     }
     
@@ -104,7 +119,6 @@ public class PostController {
         Users user = null;
 
             user = Db.lambdaQuery(Users.class).eq(Users::getId, userId).one();
-
         
         // 如果不是管理员，强制设置status为approved
         if (user == null || !"admin".equals(user.getRole())) {

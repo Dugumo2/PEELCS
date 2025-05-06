@@ -31,4 +31,9 @@ public class PostQuery extends PageQuery {
      * 标题关键字
      */
     private String titleKeyword;
+    
+    /**
+     * 分区类别ID（官方通知0，考研资讯1，学习交流2）
+     */
+    private Long categoryId;
 }

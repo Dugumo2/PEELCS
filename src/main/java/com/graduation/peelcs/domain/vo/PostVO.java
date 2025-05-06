@@ -26,6 +26,16 @@ public class PostVO {
     private String nickname;
     
     /**
+     * 分区类别ID（官方通知0，考研资讯1，学习交流2）
+     */
+    private Long categoryId;
+    
+    /**
+     * 分区名称
+     */
+    private String categoryName;
+    
+    /**
      * 标题
      */
     private String title;

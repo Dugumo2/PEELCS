@@ -21,4 +21,9 @@ public class PostDTO {
      * 是否匿名
      */
     private Boolean isAnonymous;
+    
+    /**
+     * 分区类别ID（官方通知0，考研资讯1，学习交流2）
+     */
+    private Long categoryId;
 } 

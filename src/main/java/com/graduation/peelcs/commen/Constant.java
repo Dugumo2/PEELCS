@@ -115,4 +115,24 @@ public class Constant {
          */
         public static final int DAILY_POINTS_LIMIT = 3;
     }
+
+    /**
+     * 论坛分区常量
+     */
+    public static class ForumCategory {
+        /**
+         * 官方通知
+         */
+        public static final Long OFFICIAL_NOTICE = 0L;
+        
+        /**
+         * 考研资讯
+         */
+        public static final Long EXAM_INFO = 1L;
+        
+        /**
+         * 学习交流
+         */
+        public static final Long STUDY_COMMUNICATION = 2L;
+    }
 }

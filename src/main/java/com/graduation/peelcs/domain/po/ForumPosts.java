@@ -37,6 +37,11 @@ public class ForumPosts implements Serializable {
     private Long userId;
 
     /**
+     * 分区类别ID（官方通知0，考研资讯1，学习交流2）
+     */
+    private Long categoryId;
+
+    /**
      * 标题
      */
     private String title;

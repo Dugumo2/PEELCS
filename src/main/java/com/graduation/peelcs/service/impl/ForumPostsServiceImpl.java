@@ -67,6 +67,7 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         post.setContent(content);
         post.setIsAnonymous(isAnonymous != null && isAnonymous);
         post.setIsOfficial(false); // 非官方帖子
+        post.setCategoryId(Constant.ForumCategory.STUDY_COMMUNICATION); // 普通用户只能发布到学习交流区
         post.setStatus("pending"); // 默认状态为待审核
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
@@ -78,12 +79,22 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ForumPosts createOfficialPost(Long userId, String title, String content) {
+    public ForumPosts createOfficialPost(Long userId, String title, String content, Long categoryId) {
         // 参数验证
         if (userId == null || !StringUtils.hasText(title) || !StringUtils.hasText(content)) {
             throw new IllegalArgumentException("参数不完整");
         }
 
+        // 如果未指定分区，默认为官方通知
+        if (categoryId == null) {
+            categoryId = Constant.ForumCategory.OFFICIAL_NOTICE;
+        }
+        
+        // 只允许管理员发布官方通知和考研资讯
+        if (!categoryId.equals(Constant.ForumCategory.OFFICIAL_NOTICE) && 
+            !categoryId.equals(Constant.ForumCategory.EXAM_INFO)) {
+            throw new IllegalArgumentException("管理员只能发布官方通知和考研资讯");
+        }
         
         // 创建官方帖子
         ForumPosts post = new ForumPosts();
@@ -92,6 +103,7 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         post.setContent(content);
         post.setIsAnonymous(false); // 官方帖子不匿名
         post.setIsOfficial(true); // 官方帖子
+        post.setCategoryId(categoryId); // 设置分区ID
         post.setStatus("approved"); // 官方帖子直接通过审核
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
@@ -201,6 +213,11 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
             wrapper.eq(ForumPosts::getUserId, query.getUserId());
         }
         
+        // 查询条件：分区ID
+        if (query.getCategoryId() != null) {
+            wrapper.eq(ForumPosts::getCategoryId, query.getCategoryId());
+        }
+        
         // 查询条件：标题关键字
         if (StringUtils.hasText(query.getTitleKeyword())) {
             wrapper.like(ForumPosts::getTitle, query.getTitleKeyword());
@@ -291,6 +308,9 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         PostVO vo = new PostVO();
         BeanUtils.copyProperties(post, vo);
         
+        // 设置分区名称
+        setCategoryName(vo);
+        
         // 处理内容字段 - 如果超过200个字符则截断
         if (StringUtils.hasText(vo.getContent()) && vo.getContent().length() > 200) {
             vo.setContent(vo.getContent().substring(0, 200) + "...");
@@ -327,6 +347,9 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         PostDetailVO vo = new PostDetailVO();
         BeanUtils.copyProperties(post, vo);
         
+        // 设置分区名称
+        setCategoryName(vo);
+        
         // 查询作者信息（非匿名）
         if (!post.getIsAnonymous()) {
             Users user = Db.lambdaQuery(Users.class).eq(Users::getId,post.getUserId()).one();
@@ -340,6 +363,32 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         vo.setComments(new ArrayList<>());
         
         return vo;
+    }
+    
+    /**
+     * 根据分区ID设置分区名称
+     */
+    private void setCategoryName(Object vo) {
+        try {
+            Long categoryId = (Long) vo.getClass().getMethod("getCategoryId").invoke(vo);
+            String categoryName;
+            
+            if (categoryId == null) {
+                categoryName = "未知分区";
+            } else if (categoryId.equals(Constant.ForumCategory.OFFICIAL_NOTICE)) {
+                categoryName = "官方通知";
+            } else if (categoryId.equals(Constant.ForumCategory.EXAM_INFO)) {
+                categoryName = "考研资讯";
+            } else if (categoryId.equals(Constant.ForumCategory.STUDY_COMMUNICATION)) {
+                categoryName = "学习交流";
+            } else {
+                categoryName = "其他分区";
+            }
+            
+            vo.getClass().getMethod("setCategoryName", String.class).invoke(vo, categoryName);
+        } catch (Exception e) {
+            log.error("设置分区名称失败", e);
+        }
     }
     
     /**
