@@ -77,9 +77,8 @@ public class StudySessionsServiceImpl extends ServiceImpl<StudySessionsMapper, S
         session.setUserId(userId);
         session.setTaskId(taskId);
         session.setSubject(task.getSubject());
-        session.setTaskName(task.getName());
         session.setSessionType(sessionType);
-        session.setPlannedDurationMinutes(durationMinutes);
+        session.setDurationMinutes(durationMinutes);
         session.setState(Constant.SessionState.RUNNING);
         session.setStartTime(LocalDateTime.now());
         session.setCreatedAt(LocalDateTime.now());
@@ -316,8 +315,15 @@ public class StudySessionsServiceImpl extends ServiceImpl<StudySessionsMapper, S
         
         StudySessionVO vo = new StudySessionVO();
         BeanUtils.copyProperties(session, vo);
-        // 处理字段名称不一致的问题
-        vo.setDurationMinutes(session.getPlannedDurationMinutes());
+        
+        // 如果需要任务名称，从任务中获取
+        if (session.getTaskId() != null) {
+            StudyTasks task = studyTasksMapper.selectById(session.getTaskId());
+            if (task != null) {
+                vo.setTaskName(task.getName());
+            }
+        }
+        
         return vo;
     }
 }

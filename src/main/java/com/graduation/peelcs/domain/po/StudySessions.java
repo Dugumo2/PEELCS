@@ -47,11 +47,6 @@ public class StudySessions implements Serializable {
     private String subject;
 
     /**
-     * 任务名称
-     */
-    private String taskName;
-
-    /**
      * 开始时间
      */
     private LocalDateTime startTime;
@@ -62,9 +57,9 @@ public class StudySessions implements Serializable {
     private LocalDateTime endTime;
 
     /**
-     * 计划持续时间(分钟)
+     * 持续时间(分钟)
      */
-    private Integer plannedDurationMinutes;
+    private Integer durationMinutes;
 
     /**
      * 会话类型:work/break

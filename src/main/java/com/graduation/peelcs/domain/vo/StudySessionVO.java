@@ -34,6 +34,11 @@ public class StudySessionVO {
     private String subject;
     
     /**
+     * 任务名称（从任务中获取）
+     */
+    private String taskName;
+    
+    /**
      * 开始时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
