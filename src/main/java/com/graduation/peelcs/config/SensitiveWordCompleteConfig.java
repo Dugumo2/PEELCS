@@ -1,6 +1,8 @@
 package com.graduation.peelcs.config;
 
 import com.github.houbb.sensitive.word.bs.SensitiveWordBs;
+import com.github.houbb.sensitive.word.support.deny.WordDenyEmpty;
+import com.github.houbb.sensitive.word.support.deny.WordDenys;
 import com.github.houbb.sensitive.word.support.ignore.SensitiveWordCharIgnores;
 import com.github.houbb.sensitive.word.support.resultcondition.WordResultConditions;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +20,8 @@ public class SensitiveWordCompleteConfig {
     public SensitiveWordBs sensitiveWordBs() {
         // 创建实例
         SensitiveWordBs sensitiveWordBs = SensitiveWordBs.newInstance()
+                // 使用默认的敏感词库
+                .wordDeny(WordDenys.defaults())
                 // 文本处理配置
                 .ignoreCase(true)
                 .ignoreWidth(true)
@@ -37,11 +41,6 @@ public class SensitiveWordCompleteConfig {
                 .charIgnore(SensitiveWordCharIgnores.specialChars())
                 .wordResultCondition(WordResultConditions.englishWordMatch())
                 .init();
-        
-        // 添加自定义敏感词
-        sensitiveWordBs.addWord("冰毒");
-        sensitiveWordBs.addWord("傻帽");
-        sensitiveWordBs.addWord("狗东西");
         
         return sensitiveWordBs;
     }

@@ -128,30 +128,16 @@ public class AvatarsController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             
-            // 查询头像信息
-            Avatars avatar = avatarsService.getAvatarById(avatarId);
-            if (avatar == null) {
-                return Result.error("头像不存在");
-            }
-
-            // 获取用户信息
-            Users user = usersService.getUserById(userId);
-            
-            // 检查积分是否足够
-            if (user.getPoints() < avatar.getPointsRequired()) {
-                return Result.error("积分不足，无法兑换该头像");
-            }
-            
-            // 记录用户解锁头像
-            userAvatarUnlocksService.recordAvatarUnlock(userId, avatarId);
-            
-            // 执行兑换
+            // 执行兑换操作（服务层会处理积分检查和扣除）
             Users updatedUser = usersService.exchangeAvatar(userId, avatarId);
             
             return Result.success("头像兑换成功", updatedUser);
+        } catch (IllegalArgumentException e) {
+            log.error("头像兑换失败: {}", e.getMessage());
+            return Result.error(e.getMessage());
         } catch (Exception e) {
             log.error("头像兑换失败: {}", e.getMessage(), e);
-            return Result.error(e.getMessage());
+            return Result.error("头像兑换失败: " + e.getMessage());
         }
     }
 }
