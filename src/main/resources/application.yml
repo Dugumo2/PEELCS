@@ -61,3 +61,7 @@ logging:
   level:
     org.ehcache: debug
 
+sensitive-word:
+  file-path: classpath:static/sensitive_words_lines.txt
+allow-word:
+  file-path: classpath:static/all_words_lines.txt

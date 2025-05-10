@@ -132,6 +132,12 @@
             <artifactId>sensitive-word</artifactId>
             <version>0.26.0</version>
         </dependency>
+        <!-- 快速读取文件-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
     </dependencies>
 
     <build>

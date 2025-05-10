@@ -1,4 +1,4 @@
-package com.graduation.peelcs.service.impl;
+package com.graduation.peelcs.utils.sensitivewords;
 
 import com.github.houbb.sensitive.word.bs.SensitiveWordBs;
 import org.springframework.beans.factory.annotation.Autowired;
