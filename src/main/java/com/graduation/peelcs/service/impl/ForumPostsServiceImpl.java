@@ -220,11 +220,12 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         LambdaQueryWrapper<ForumPosts> wrapper = new LambdaQueryWrapper<>();
         
         // 查询条件：帖子状态
-        if (StringUtils.hasText(query.getStatus())) {
-            wrapper.eq(ForumPosts::getStatus, query.getStatus());
-        } else {
-            // 默认只查询已通过审核的帖子
-            wrapper.eq(ForumPosts::getStatus, "approved");
+        String status = query.getStatus();
+        if (status != null) {
+            wrapper.eq(
+                    ForumPosts::getStatus,
+                    StringUtils.hasText(status) ? status : "approved" // 默认只查询已通过审核的帖子
+            );
         }
         
         // 查询条件：是否官方帖子
