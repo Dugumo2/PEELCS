@@ -45,13 +45,22 @@ public class PostController {
      */
     @PostMapping
     public Result<ForumPosts> createPost(@RequestBody PostDTO postDTO) {
-        Long userId = StpUtil.getLoginIdAsLong();
-        ForumPosts post = forumPostsService.createPost(
-                userId,
-                postDTO.getTitle(),
-                postDTO.getContent(),
-                postDTO.getIsAnonymous());
-        return Result.success(post);
+        try {
+            Long userId = StpUtil.getLoginIdAsLong();
+            ForumPosts post = forumPostsService.createPost(
+                    userId,
+                    postDTO.getTitle(),
+                    postDTO.getContent(),
+                    postDTO.getIsAnonymous());
+            
+            return Result.success(post);
+        } catch (IllegalArgumentException e) {
+            log.error("发布帖子失败: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("发布帖子失败: {}", e.getMessage(), e);
+            return Result.error("发布帖子失败: " + e.getMessage());
+        }
     }
     
     /**

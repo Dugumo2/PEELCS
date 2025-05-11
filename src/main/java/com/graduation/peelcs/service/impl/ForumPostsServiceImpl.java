@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.graduation.peelcs.service.IPostCommentsService;
 import com.graduation.peelcs.service.IUsersService;
 import com.graduation.peelcs.utils.redis.IRedisService;
+import com.graduation.peelcs.utils.sensitivewords.ContentFilterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -51,6 +52,7 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
 
     private final IPostCommentsService postCommentsService;
     private final IRedisService redisService;
+    private final ContentFilterService contentFilterService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -58,6 +60,18 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
         // 参数验证
         if (userId == null || !StringUtils.hasText(title) || !StringUtils.hasText(content)) {
             throw new IllegalArgumentException("参数不完整");
+        }
+        
+        // 敏感词检测
+        boolean containsSensitiveWords = contentFilterService.containsSensitiveWords(title) || 
+                                        contentFilterService.containsSensitiveWords(content);
+        
+        // 获取敏感词列表（用于返回拒绝原因）
+        if (containsSensitiveWords) {
+            List<String> sensitiveWordsList = new ArrayList<>();
+            sensitiveWordsList.addAll(contentFilterService.findAllSensitiveWords(title));
+            sensitiveWordsList.addAll(contentFilterService.findAllSensitiveWords(content));
+            throw new IllegalArgumentException("帖子包含敏感词：" + String.join(", ", sensitiveWordsList));
         }
         
         // 创建帖子
@@ -85,6 +99,16 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
             throw new IllegalArgumentException("参数不完整");
         }
 
+        // 敏感词检测（即使是管理员发布的官方帖子也检测敏感词）
+        boolean containsSensitiveWords = contentFilterService.containsSensitiveWords(title) || 
+                                        contentFilterService.containsSensitiveWords(content);
+        
+        // 如果包含敏感词，先替换敏感词
+        if (containsSensitiveWords) {
+            title = contentFilterService.filterContent(title);
+            content = contentFilterService.filterContent(content);
+        }
+        
         // 如果未指定分区，默认为官方通知
         if (categoryId == null) {
             categoryId = Constant.ForumCategory.OFFICIAL_NOTICE;

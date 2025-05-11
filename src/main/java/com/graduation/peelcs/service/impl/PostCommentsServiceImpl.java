@@ -14,6 +14,7 @@ import com.graduation.peelcs.domain.vo.CommentVO;
 import com.graduation.peelcs.mapper.PostCommentsMapper;
 import com.graduation.peelcs.service.IPostCommentsService;
 import com.graduation.peelcs.utils.redis.IRedisService;
+import com.graduation.peelcs.utils.sensitivewords.ContentFilterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, PostComments> implements IPostCommentsService {
 
     private final IRedisService redisService;
+    private final ContentFilterService contentFilterService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -50,7 +52,9 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         if (userId == null || postId == null || !StringUtils.hasText(content)) {
             throw new IllegalArgumentException("参数不完整");
         }
-
+        
+        // 过滤敏感词，自动替换为星号
+        String filteredContent = contentFilterService.filterContent(content);
         
         // 检查帖子是否存在且已通过审核
         ForumPosts post = Db.lambdaQuery(ForumPosts.class).eq(ForumPosts::getId,postId).one();
@@ -69,7 +73,7 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         comment.setRootCommentId(null); // 顶级评论
         comment.setToCommentId(null); // 顶级评论
         comment.setToUserNickname(null); // 顶级评论
-        comment.setContent(content);
+        comment.setContent(filteredContent); // 使用过滤后的内容
         comment.setIsAnonymous(isAnonymous != null && isAnonymous);
         comment.setCreatedAt(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
@@ -94,7 +98,9 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         if (userId == null || commentId == null || !StringUtils.hasText(content)) {
             throw new IllegalArgumentException("参数不完整");
         }
-
+        
+        // 过滤敏感词，自动替换为星号
+        String filteredContent = contentFilterService.filterContent(content);
         
         // 检查目标评论是否存在
         PostComments targetComment = this.getById(commentId);
@@ -125,7 +131,7 @@ public class PostCommentsServiceImpl extends ServiceImpl<PostCommentsMapper, Pos
         
         reply.setToCommentId(targetComment.getId());
         reply.setToUserNickname(targetNickname);
-        reply.setContent(content);
+        reply.setContent(filteredContent); // 使用过滤后的内容
         reply.setIsAnonymous(isAnonymous != null && isAnonymous);
         reply.setCreatedAt(LocalDateTime.now());
         reply.setUpdatedAt(LocalDateTime.now());
