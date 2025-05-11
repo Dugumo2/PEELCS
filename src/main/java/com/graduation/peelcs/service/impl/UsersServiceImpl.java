@@ -260,9 +260,11 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
             throw new IllegalArgumentException("头像不存在");
         }
 
-        Long count = Db.lambdaQuery(UserAvatarUnlocks.class).eq(UserAvatarUnlocks::getUserId, userId).eq(UserAvatarUnlocks::getAvatarId, avatarId).count();
-        if (count == 0){
-            throw new IllegalArgumentException("头像未解锁");
+        if(!user.getRole().equals("admin")){
+            Long count = Db.lambdaQuery(UserAvatarUnlocks.class).eq(UserAvatarUnlocks::getUserId, userId).eq(UserAvatarUnlocks::getAvatarId, avatarId).count();
+            if (count == 0){
+                throw new IllegalArgumentException("头像未解锁");
+            }
         }
 
         // 更改用户头像
