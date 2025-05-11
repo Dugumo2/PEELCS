@@ -1,6 +1,7 @@
 package com.graduation.peelcs.service;
 
 import com.graduation.peelcs.domain.po.ForumPosts;
+import com.graduation.peelcs.domain.po.Users;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.graduation.peelcs.domain.query.PostQuery;
 import com.graduation.peelcs.domain.vo.PostDetailVO;
@@ -76,5 +77,20 @@ public interface IForumPostsService extends IService<ForumPosts> {
      * @return 帖子详情
      */
     PostDetailVO getPostDetail(Long postId, Long userId, boolean isAdmin);
-
+    
+    /**
+     * 根据帖子ID封禁用户
+     *
+     * @param postId 帖子ID
+     * @return 被封禁的用户对象
+     */
+    Users banUserByPostId(Long postId);
+    
+    /**
+     * 根据评论ID封禁用户
+     *
+     * @param commentId 评论ID
+     * @return 被封禁的用户对象
+     */
+    Users banUserByCommentId(Long commentId);
 }

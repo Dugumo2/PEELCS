@@ -280,4 +280,46 @@ public class PostController {
             return Result.error("删除失败");
         }
     }
+    
+    /**
+     * 根据帖子ID封禁用户（管理员接口）
+     * 
+     * @param postId 帖子ID
+     * @return 封禁结果
+     */
+    @PostMapping("/ban-user/post/{postId}")
+    @SaCheckRole("admin")
+    public Result<Users> banUserByPostId(@PathVariable Long postId) {
+        try {
+            Users bannedUser = forumPostsService.banUserByPostId(postId);
+            return Result.success("用户已被封禁", bannedUser);
+        } catch (IllegalArgumentException e) {
+            log.error("封禁用户失败: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("封禁用户失败: {}", e.getMessage(), e);
+            return Result.error("封禁用户失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据评论ID封禁用户（管理员接口）
+     * 
+     * @param commentId 评论ID
+     * @return 封禁结果
+     */
+    @PostMapping("/ban-user/comment/{commentId}")
+    @SaCheckRole("admin")
+    public Result<Users> banUserByCommentId(@PathVariable Long commentId) {
+        try {
+            Users bannedUser = forumPostsService.banUserByCommentId(commentId);
+            return Result.success("用户已被封禁", bannedUser);
+        } catch (IllegalArgumentException e) {
+            log.error("封禁用户失败: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("封禁用户失败: {}", e.getMessage(), e);
+            return Result.error("封禁用户失败: " + e.getMessage());
+        }
+    }
 }

@@ -448,4 +448,106 @@ public class ForumPostsServiceImpl extends ServiceImpl<ForumPostsMapper, ForumPo
             }
         }
     }
+
+    /**
+     * 根据帖子ID封禁用户
+     *
+     * @param postId 帖子ID
+     * @return 被封禁的用户对象
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Users banUserByPostId(Long postId) {
+        // 参数验证
+        if (postId == null) {
+            throw new IllegalArgumentException("参数不完整");
+        }
+        
+        // 获取帖子信息
+        ForumPosts post = this.getById(postId);
+        if (post == null) {
+            throw new IllegalArgumentException("帖子不存在");
+        }
+        
+        // 获取要封禁的用户
+        Long userId = post.getUserId();
+        Users user = Db.lambdaQuery(Users.class).eq(Users::getId, userId).one();
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        
+        // 检查是否为管理员
+        if ("admin".equals(user.getRole())) {
+            throw new IllegalArgumentException("无法封禁管理员用户");
+        }
+        
+        // 检查是否已被封禁
+        if ("banned".equals(user.getStatus())) {
+            throw new IllegalArgumentException("该用户已被封禁");
+        }
+        
+        // 执行封禁操作
+        user.setStatus("banned");
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        // 更新用户状态
+        Db.lambdaUpdate(Users.class)
+          .set(Users::getStatus, "banned")
+          .set(Users::getUpdatedAt, LocalDateTime.now())
+          .eq(Users::getId, userId)
+          .update();
+          
+        return user;
+    }
+    
+    /**
+     * 根据评论ID封禁用户
+     *
+     * @param commentId 评论ID
+     * @return 被封禁的用户对象
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Users banUserByCommentId(Long commentId) {
+        // 参数验证
+        if (commentId == null) {
+            throw new IllegalArgumentException("参数不完整");
+        }
+        
+        // 获取评论信息
+        PostComments comment = Db.lambdaQuery(PostComments.class).eq(PostComments::getId, commentId).one();
+        if (comment == null) {
+            throw new IllegalArgumentException("评论不存在");
+        }
+        
+        // 获取要封禁的用户
+        Long userId = comment.getUserId();
+        Users user = Db.lambdaQuery(Users.class).eq(Users::getId, userId).one();
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        
+        // 检查是否为管理员
+        if ("admin".equals(user.getRole())) {
+            throw new IllegalArgumentException("无法封禁管理员用户");
+        }
+        
+        // 检查是否已被封禁
+        if ("banned".equals(user.getStatus())) {
+            throw new IllegalArgumentException("该用户已被封禁");
+        }
+        
+        // 执行封禁操作
+        user.setStatus("banned");
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        // 更新用户状态
+        Db.lambdaUpdate(Users.class)
+          .set(Users::getStatus, "banned")
+          .set(Users::getUpdatedAt, LocalDateTime.now())
+          .eq(Users::getId, userId)
+          .update();
+          
+        return user;
+    }
 }
