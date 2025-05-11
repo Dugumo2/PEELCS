@@ -261,20 +261,8 @@ public class UsersController {
             Long userId = StpUtil.getLoginIdAsLong();
             
             // 调用服务更换头像
-            Users updatedUser = usersService.exchangeAvatar(userId, avatarId);
-            
-            // 转换为VO对象
-            UserVO userVO = new UserVO();
-            BeanUtils.copyProperties(updatedUser, userVO);
-            
-            // 设置头像URL
-            if (updatedUser.getAvatarId() != null) {
-                Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId,updatedUser.getAvatarId()).one();
-                if (avatar != null) {
-                    userVO.setAvatarUrl(avatar.getImageUrl());
-                }
-            }
-            
+            UserVO userVO = usersService.changeAvatar(userId, avatarId);
+
             return Result.success("头像更换成功", userVO);
         } catch (Exception e) {
             log.error("更换头像失败: {}", e.getMessage(), e);

@@ -2,6 +2,7 @@ package com.graduation.peelcs.service;
 
 import com.graduation.peelcs.domain.po.Users;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.graduation.peelcs.domain.vo.UserVO;
 
 /**
  * <p>
@@ -68,4 +69,13 @@ public interface IUsersService extends IService<Users> {
      * @return 更新后的用户对象
      */
     Users exchangeAvatar(Long userId, Long avatarId);
+
+    /**
+     * 更换用户头像（仅限已解锁的头像，不消耗积分）
+     *
+     * @param userId 用户ID
+     * @param avatarId 头像ID
+     * @return 更新后的用户信息
+     */
+    UserVO changeAvatar(Long userId, Long avatarId);
 }

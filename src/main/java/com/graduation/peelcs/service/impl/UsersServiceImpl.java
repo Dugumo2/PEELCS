@@ -3,9 +3,11 @@ package com.graduation.peelcs.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.graduation.peelcs.commen.Constant;
+import com.graduation.peelcs.domain.po.UserCheckins;
 import com.graduation.peelcs.domain.po.Users;
 import com.graduation.peelcs.domain.po.Avatars;
 import com.graduation.peelcs.domain.po.UserAvatarUnlocks;
+import com.graduation.peelcs.domain.vo.UserVO;
 import com.graduation.peelcs.mapper.UsersMapper;
 import com.graduation.peelcs.service.IUsersService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +17,7 @@ import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -237,5 +240,41 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         this.updateById(user);
         
         return user;
+    }
+
+    @Override
+    public UserVO changeAvatar(Long userId, Long avatarId) {
+        if (userId == null || avatarId == null) {
+            throw new IllegalArgumentException("用户ID或头像ID不能为空");
+        }
+
+        // 获取用户信息
+        Users user = this.getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+
+        // 获取头像信息
+        Avatars avatar = Db.lambdaQuery(Avatars.class).eq(Avatars::getId, avatarId).one();
+        if (avatar == null) {
+            throw new IllegalArgumentException("头像不存在");
+        }
+
+        Long count = Db.lambdaQuery(UserAvatarUnlocks.class).eq(UserAvatarUnlocks::getUserId, userId).eq(UserAvatarUnlocks::getAvatarId, avatarId).count();
+        if (count == 0){
+            throw new IllegalArgumentException("头像未解锁");
+        }
+
+        // 更改用户头像
+        user.setAvatarId(avatarId);
+        this.updateById(user);
+
+        // 设置返回信息
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        userVO.setAvatarUrl(avatar.getImageUrl());
+
+
+        return userVO;
     }
 }

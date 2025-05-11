@@ -39,8 +39,8 @@ spring:
 # sa-token??
 sa-token:
   token-name: sa-token-authorization
-  timeout: 3600
-  active-timeout: 1800
+  timeout: 36000
+  active-timeout: 10800
   is-concurrent: false
   is-share: true
   token-style: simple-uuid
