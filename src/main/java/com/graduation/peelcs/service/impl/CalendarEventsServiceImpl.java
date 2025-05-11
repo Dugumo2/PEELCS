@@ -1,6 +1,7 @@
 package com.graduation.peelcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.graduation.peelcs.commen.Constant;
 import com.graduation.peelcs.domain.po.CalendarEvents;
 import com.graduation.peelcs.domain.vo.CalendarEventVO;
 import com.graduation.peelcs.mapper.CalendarEventsMapper;
@@ -34,16 +35,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper, CalendarEvents> implements ICalendarEventsService {
 
-    /**
-     * 课程类型
-     */
-    private static final String EVENT_TYPE_CLASS = "class";
-    
-    /**
-     * 日程类型
-     */
-    private static final String EVENT_TYPE_SCHEDULE = "schedule";
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CalendarEvents addClass(Long userId, String title, String description, String location, 
@@ -70,7 +61,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         event.setLocation(location);
         event.setStartTime(startTime);
         event.setEndTime(endTime);
-        event.setEventType(EVENT_TYPE_CLASS);
+        event.setEventType(Constant.EventType.CLASS);
         event.setRepeatWeeks(repeatWeeks);
         event.setCreatedAt(LocalDateTime.now());
         event.setUpdatedAt(LocalDateTime.now());
@@ -101,7 +92,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         event.setLocation(location);
         event.setStartTime(startTime);
         event.setEndTime(endTime);
-        event.setEventType(EVENT_TYPE_SCHEDULE);
+        event.setEventType(Constant.EventType.SCHEDULE);
         event.setRepeatWeeks(1); // 日程默认不重复
         event.setCreatedAt(LocalDateTime.now());
         event.setUpdatedAt(LocalDateTime.now());
@@ -131,7 +122,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         }
         
         // 如果是课程类型，设置重复周数
-        if (EVENT_TYPE_CLASS.equals(event.getEventType())) {
+        if (Constant.EventType.CLASS.equals(event.getEventType())) {
             if (repeatWeeks == null || repeatWeeks < 1) {
                 repeatWeeks = 1;
             }
@@ -207,7 +198,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         
         LambdaQueryWrapper<CalendarEvents> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CalendarEvents::getUserId, userId)
-               .eq(CalendarEvents::getEventType, EVENT_TYPE_CLASS)
+               .eq(CalendarEvents::getEventType, Constant.EventType.CLASS)
                .orderByAsc(CalendarEvents::getStartTime);
         
         List<CalendarEvents> events = this.list(wrapper);
@@ -223,7 +214,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         
         LambdaQueryWrapper<CalendarEvents> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CalendarEvents::getUserId, userId)
-               .eq(CalendarEvents::getEventType, EVENT_TYPE_SCHEDULE)
+               .eq(CalendarEvents::getEventType, Constant.EventType.SCHEDULE)
                .orderByAsc(CalendarEvents::getStartTime);
         
         List<CalendarEvents> events = this.list(wrapper);
@@ -250,24 +241,17 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
     }
 
     @Override
-    public List<CalendarEventVO> checkTimeConflict(Long userId, LocalDateTime startTime, LocalDateTime endTime, Long excludeEventId) {
+    public List<CalendarEventVO> checkTimeConflict(Long userId, LocalDateTime startTime, LocalDateTime endTime, 
+                                                  Long excludeEventId, Integer repeatWeeks, String eventType) {
         if (userId == null || startTime == null || endTime == null) {
             return Collections.emptyList();
         }
         
-        // 查询该用户在这个时间段内的所有事件
+        List<CalendarEventVO> conflicts = new ArrayList<>();
+        
+        // 查询该用户的所有事件
         LambdaQueryWrapper<CalendarEvents> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CalendarEvents::getUserId, userId)
-               .and(w -> w
-                   // 开始时间在要检查的时间段内
-                   .between(CalendarEvents::getStartTime, startTime, endTime.minusSeconds(1))
-                   // 或结束时间在要检查的时间段内
-                   .or()
-                   .between(CalendarEvents::getEndTime, startTime.plusSeconds(1), endTime)
-                   // 或时间段包含要检查的时间段
-                   .or()
-                   .le(CalendarEvents::getStartTime, startTime)
-                   .ge(CalendarEvents::getEndTime, endTime));
+        wrapper.eq(CalendarEvents::getUserId, userId);
         
         // 排除指定事件
         if (excludeEventId != null) {
@@ -276,22 +260,49 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         
         List<CalendarEvents> events = this.list(wrapper);
         
-        // 扩展重复的课程事件，检查是否有冲突
-        List<CalendarEventVO> conflicts = new ArrayList<>();
-        for (CalendarEvents event : events) {
-            // 对于课程需要检查是否在同一天的同一时间段有冲突
-            if (EVENT_TYPE_CLASS.equals(event.getEventType()) && event.getRepeatWeeks() > 1) {
-                List<CalendarEventVO> expandedEvents = expandRecurringEvents(event, startTime.minusWeeks(event.getRepeatWeeks()), endTime.plusWeeks(event.getRepeatWeeks()));
-                
-                // 过滤出与目标时间段冲突的事件
-                for (CalendarEventVO expandedEvent : expandedEvents) {
-                    if (isTimeConflict(expandedEvent.getStartTime(), expandedEvent.getEndTime(), startTime, endTime)) {
-                        conflicts.add(expandedEvent);
+        // 如果目标事件是重复课程，先展开它的所有周次
+        List<CalendarEventVO> targetEvents = new ArrayList<>();
+        if (Constant.EventType.CLASS.equals(eventType) && repeatWeeks != null && repeatWeeks > 1) {
+            // 创建一个临时事件用于展开
+            CalendarEvents tempEvent = new CalendarEvents();
+            tempEvent.setStartTime(startTime);
+            tempEvent.setEndTime(endTime);
+            tempEvent.setEventType(Constant.EventType.CLASS);
+            tempEvent.setRepeatWeeks(repeatWeeks);
+            
+            targetEvents = expandRecurringEvents(tempEvent, startTime, startTime.plusWeeks(repeatWeeks));
+        } else {
+            // 单次事件，直接添加
+            CalendarEventVO singleEvent = new CalendarEventVO();
+            singleEvent.setStartTime(startTime);
+            singleEvent.setEndTime(endTime);
+            targetEvents.add(singleEvent);
+        }
+        
+        // 检查每个目标事件周次与数据库中事件的冲突
+        for (CalendarEventVO targetEvent : targetEvents) {
+            for (CalendarEvents dbEvent : events) {
+                // 对于非重复事件或只重复一周的事件，直接检查
+                if (!Constant.EventType.CLASS.equals(dbEvent.getEventType()) || dbEvent.getRepeatWeeks() <= 1) {
+                    if (isTimeConflict(dbEvent.getStartTime(), dbEvent.getEndTime(), 
+                                      targetEvent.getStartTime(), targetEvent.getEndTime())) {
+                        conflicts.add(convertToVO(dbEvent));
+                    }
+                } else {
+                    // 对于重复课程，展开所有周次
+                    List<CalendarEventVO> expandedEvents = expandRecurringEvents(dbEvent, 
+                        targetEvent.getStartTime().minusWeeks(dbEvent.getRepeatWeeks()), 
+                        targetEvent.getEndTime().plusWeeks(dbEvent.getRepeatWeeks()));
+                    
+                    // 检查每个展开的周次是否与目标事件冲突
+                    for (CalendarEventVO expandedEvent : expandedEvents) {
+                        if (isTimeConflict(expandedEvent.getStartTime(), expandedEvent.getEndTime(), 
+                                          targetEvent.getStartTime(), targetEvent.getEndTime())) {
+                            conflicts.add(expandedEvent);
+                            break; // 找到一个冲突即可
+                        }
                     }
                 }
-            } else {
-                // 对于普通事件，直接添加
-                conflicts.add(convertToVO(event));
             }
         }
         
@@ -314,7 +325,7 @@ public class CalendarEventsServiceImpl extends ServiceImpl<CalendarEventsMapper,
         List<CalendarEventVO> result = new ArrayList<>();
         
         // 如果不是课程或不重复，直接返回原事件
-        if (!EVENT_TYPE_CLASS.equals(event.getEventType()) || event.getRepeatWeeks() <= 1) {
+        if (!Constant.EventType.CLASS.equals(event.getEventType()) || event.getRepeatWeeks() <= 1) {
             if (event.getStartTime().isBefore(endDate) && event.getEndTime().isAfter(startDate)) {
                 result.add(convertToVO(event));
             }

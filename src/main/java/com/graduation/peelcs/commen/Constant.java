@@ -135,4 +135,19 @@ public class Constant {
          */
         public static final Long STUDY_COMMUNICATION = 2L;
     }
+    
+    /**
+     * 事件类型常量
+     */
+    public static class EventType {
+        /**
+         * 课程类型
+         */
+        public static final String CLASS = "class";
+        
+        /**
+         * 日程类型
+         */
+        public static final String SCHEDULE = "schedule";
+    }
 }

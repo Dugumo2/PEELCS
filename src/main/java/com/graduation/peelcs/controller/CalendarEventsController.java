@@ -2,6 +2,7 @@ package com.graduation.peelcs.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
+import com.graduation.peelcs.commen.Constant;
 import com.graduation.peelcs.commen.Result;
 import com.graduation.peelcs.domain.dto.CalendarEventDTO;
 import com.graduation.peelcs.domain.po.CalendarEvents;
@@ -43,12 +44,14 @@ public class CalendarEventsController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             
-            // 检查时间冲突（移到控制器中处理）
+            // 检查时间冲突（传递课程类型和重复周数）
             List<CalendarEventVO> conflicts = calendarEventsService.checkTimeConflict(
                 userId,
                 eventDTO.getStartTime(),
                 eventDTO.getEndTime(),
-                eventDTO.getId()
+                eventDTO.getId(),
+                eventDTO.getRepeatWeeks(),
+                Constant.EventType.CLASS
             );
             
             if (!conflicts.isEmpty()) {
@@ -98,12 +101,14 @@ public class CalendarEventsController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             
-            // 检查时间冲突（移到控制器中处理）
+            // 检查时间冲突（传递日程类型，不重复）
             List<CalendarEventVO> conflicts = calendarEventsService.checkTimeConflict(
                 userId,
                 eventDTO.getStartTime(),
                 eventDTO.getEndTime(),
-                eventDTO.getId()
+                eventDTO.getId(),
+                1,  // 日程不重复
+                Constant.EventType.SCHEDULE
             );
             
             if (!conflicts.isEmpty()) {
@@ -153,12 +158,23 @@ public class CalendarEventsController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             
-            // 检查时间冲突（移到控制器中处理）
+            // 获取事件类型
+            CalendarEventVO existingEvent = calendarEventsService.getEventDetail(id, userId);
+            if (existingEvent == null) {
+                return Result.error("事件不存在或已被删除");
+            }
+            
+            String eventType = existingEvent.getEventType();
+            Integer repeatWeeks = Constant.EventType.CLASS.equals(eventType) ? eventDTO.getRepeatWeeks() : 1;
+            
+            // 检查时间冲突（根据事件类型决定重复周数）
             List<CalendarEventVO> conflicts = calendarEventsService.checkTimeConflict(
                 userId,
                 eventDTO.getStartTime(),
                 eventDTO.getEndTime(),
-                id  // 编辑时排除当前事件
+                id,  // 编辑时排除当前事件
+                repeatWeeks,
+                eventType
             );
             
             if (!conflicts.isEmpty()) {

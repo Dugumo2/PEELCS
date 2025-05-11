@@ -104,7 +104,10 @@ public interface ICalendarEventsService extends IService<CalendarEvents> {
      * @param startTime 开始时间
      * @param endTime 结束时间
      * @param excludeEventId 排除的事件ID(编辑时需要)
+     * @param repeatWeeks 重复周数
+     * @param eventType 事件类型
      * @return 冲突的事件列表，空列表表示无冲突
      */
-    List<CalendarEventVO> checkTimeConflict(Long userId, LocalDateTime startTime, LocalDateTime endTime, Long excludeEventId);
+    List<CalendarEventVO> checkTimeConflict(Long userId, LocalDateTime startTime, LocalDateTime endTime, 
+                                           Long excludeEventId, Integer repeatWeeks, String eventType);
 }
