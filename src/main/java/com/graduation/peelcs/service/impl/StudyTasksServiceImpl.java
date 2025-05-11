@@ -125,20 +125,75 @@ public class StudyTasksServiceImpl extends ServiceImpl<StudyTasksMapper, StudyTa
         if (userId == null) {
             return new ArrayList<>();
         }
-        
+
         // 查询用户的所有任务
         LambdaQueryWrapper<StudyTasks> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(StudyTasks::getUserId, userId)
-               .orderByDesc(StudyTasks::getCreatedAt);
-        
+                .orderByDesc(StudyTasks::getCreatedAt);
+
         List<StudyTasks> tasks = this.list(wrapper);
-        
-        // 转换为VO
+
+        // 创建一个Map来存储每个任务的统计数据
+        Map<Long, TaskStats> taskStatsMap = new HashMap<>();
+
+        // 为每个任务计算统计数据
+        for (StudyTasks task : tasks) {
+            // 查询任务的学习记录统计
+            LambdaQueryWrapper<StudySessions> sessionWrapper = new LambdaQueryWrapper<>();
+            sessionWrapper.eq(StudySessions::getTaskId, task.getId())
+                    .eq(StudySessions::getUserId, userId)
+                    .eq(StudySessions::getState, Constant.SessionState.COMPLETED)
+                    .eq(StudySessions::getSessionType, Constant.SessionType.WORK);
+
+            // 计算总学习时间和番茄数
+            List<StudySessions> sessions = studySessionsMapper.selectList(sessionWrapper);
+            int totalStudyMinutes = sessions.stream()
+                    .mapToInt(StudySessions::getActualWorkTime)
+                    .sum();
+
+            int completedPomodoros = (int) sessions.stream()
+                    .filter(s -> s.getActualWorkTime() >= Constant.PomodoroSettings.DEFAULT_WORK_MINUTES * 0.9) // 完成90%以上视为完成一个番茄
+                    .count();
+
+            // 将统计数据存入Map
+            taskStatsMap.put(task.getId(), new TaskStats(totalStudyMinutes, completedPomodoros));
+        }
+
+        // 转换为VO并设置统计数据
         return tasks.stream()
-                .map(this::convertToVO)
+                .map(task -> {
+                    StudyTaskVO vo = convertToVO(task);
+                    TaskStats stats = taskStatsMap.get(task.getId());
+                    if (stats != null) {
+                        vo.setTotalStudyMinutes(stats.getTotalStudyMinutes());
+                        vo.setCompletedPomodoros(stats.getCompletedPomodoros());
+                    }
+                    vo.setIsCompleted(stats.getTotalStudyMinutes() > task.getDurationMinutes());
+                    return vo;
+                })
                 .collect(Collectors.toList());
     }
 
+    // 辅助类来存储任务统计数据
+    private static class TaskStats {
+        private final int totalStudyMinutes;
+        private final int completedPomodoros;
+
+        public TaskStats(int totalStudyMinutes, int completedPomodoros) {
+            this.totalStudyMinutes = totalStudyMinutes;
+            this.completedPomodoros = completedPomodoros;
+        }
+
+        public int getTotalStudyMinutes() {
+            return totalStudyMinutes;
+        }
+
+        public int getCompletedPomodoros() {
+            return completedPomodoros;
+        }
+    }
+
+    @Deprecated
     @Override
     public StudyTaskVO getTaskDetail(Long id, Long userId) {
         if (id == null || userId == null) {

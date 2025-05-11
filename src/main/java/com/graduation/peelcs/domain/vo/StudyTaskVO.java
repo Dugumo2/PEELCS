@@ -59,4 +59,9 @@ public class StudyTaskVO {
      * 完成的番茄数
      */
     private Integer completedPomodoros;
+
+    /**
+     * 是否完成
+     */
+    private Boolean isCompleted;
 } 

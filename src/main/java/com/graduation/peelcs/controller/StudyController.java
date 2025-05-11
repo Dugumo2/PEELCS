@@ -84,6 +84,7 @@ public class StudyController {
     /**
      * 获取任务详情
      */
+    @Deprecated
     @GetMapping("/tasks/{id}")
     public Result<StudyTaskVO> getTaskDetail(@PathVariable Long id) {
         Long userId = StpUtil.getLoginIdAsLong();

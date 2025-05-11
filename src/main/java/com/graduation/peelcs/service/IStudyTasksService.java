@@ -64,6 +64,7 @@ public interface IStudyTasksService extends IService<StudyTasks> {
      * @param userId 用户ID
      * @return 任务详情
      */
+    @Deprecated
     StudyTaskVO getTaskDetail(Long id, Long userId);
     
     /**
